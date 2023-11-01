@@ -30,13 +30,12 @@ async def _runner(reader: ReaderCallback):
         await asyncio.sleep(2)
 
 
-def _make_reader(pin: int):
-    return functools.partial(dht.read_dht, pin=pin)
-
-
 # NOTE: Am I doing type shadowing here? The returns of both read_dht_simulated and
 #       _make_reader should be compatible with ReaderCallback, yet if I make
 #       read_dht_simulated return a different type than expected the MyPy static
 #       type checker doesn't complain.
 def _get_appropriate_reader(config: config.SensorConfig) -> ReaderCallback:
-    return _make_reader(config.pin) if not config.simulated else dht.read_dht_simulated
+    if not config.simulated:
+        return functools.partial(dht.read_dht, pin=config.pin)
+    else:
+        return dht.read_dht_simulated
