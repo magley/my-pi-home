@@ -7,7 +7,7 @@ class SensorConfig:
     name: str
     pin: int
     simulated: bool
-    read_interval: int
+    read_interval: float
 
 
 def load_configs(path):

@@ -1,7 +1,7 @@
 import threading
 import time
 import config
-import util.dht
+import components.dht
 import argparse
 import typing
 import RPi.GPIO as GPIO
@@ -20,17 +20,17 @@ def parse_args():
     return Args(args.configs_path, args.main_loop_sleep)
 
 
-def make_component_loop_threads(args: Args, stop_event: threading.Event):
-    configs = config.load_configs(args.configs_path)
+def make_component_loop_threads(configs: list[config.SensorConfig], stop_event: threading.Event):
     threads: list[threading.Thread] = []
     make_thread = lambda target, *args: threading.Thread(target=target, args=args)
-    threads.append(make_thread(util.dht.start_reader_loop, configs[0], stop_event))
+    threads.append(make_thread(components.dht.start_reader_loop, configs[0], stop_event))
     return threads
 
 
 def start_main_loop(args: Args):
     stop_event = threading.Event()
-    threads = make_component_loop_threads(args, stop_event)
+    configs = config.load_configs(args.configs_path)
+    threads = make_component_loop_threads(configs, stop_event)
     GPIO.setmode(GPIO.BCM)
     try:
         for thread in threads:
