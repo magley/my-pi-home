@@ -27,7 +27,7 @@ def read_dht(pin: int, wakeup_delay = DHTLIB_DHT11_WAKEUP, timeout = DHTLIB_TIME
         bits = [0,0,0,0,0]
         GPIO.setup(pin,GPIO.OUT)
         GPIO.output(pin,GPIO.LOW)
-        time.sleep(wakeup_delay)  # FIXME: Can this be removed/replaced with async sleep?
+        time.sleep(wakeup_delay)
         GPIO.output(pin,GPIO.HIGH)
         #time.sleep(40*0.000001)
         GPIO.setup(pin,GPIO.IN)

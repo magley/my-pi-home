@@ -1,20 +1,21 @@
 import sensors.dht as dht
 import functools
 import time
-import asyncio
 import typing
 import config
+import threading
 
 
-async def start_runner(config: config.SensorConfig):
+def start_reader_loop(config: config.SensorConfig, stop_event: threading.Event):
     reader = _get_appropriate_reader(config)
-    await _runner(reader)
+    _reader_loop(reader, config, stop_event)
 
 
-def print_reading(reading: dht.DHTReading):
+def print_reading(reading: dht.DHTReading, config: config.SensorConfig):
     t = time.localtime()
     print("="*20)
     print(f"Timestamp: {time.strftime('%H:%M:%S', t)}")
+    print(f"Sensor: {config.name}")
     print(f"Code: {reading.code}")
     print(f"Humidity: {reading.humidity}%")
     print(f"Temperature: {reading.temperature}°C")
@@ -23,11 +24,14 @@ def print_reading(reading: dht.DHTReading):
 ReaderCallback = typing.Callable[[], dht.DHTReading]
 
 
-async def _runner(reader: ReaderCallback):
+def _reader_loop(reader: ReaderCallback, config: config.SensorConfig, stop_event: threading.Event):
     while True:
+        if stop_event.is_set():
+            print('Stopping dht loop')
+            break
         reading = reader()
-        print_reading(reading)
-        await asyncio.sleep(2)
+        print_reading(reading, config)
+        time.sleep(config.read_interval)
 
 
 # NOTE: Am I doing type shadowing here? The returns of both read_dht_simulated and

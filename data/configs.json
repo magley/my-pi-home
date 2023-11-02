@@ -2,6 +2,7 @@
     {
         "name": "DHT1",
         "pin": 17,
-        "simulated": false
+        "simulated": true,
+        "read_interval": 2
     }
 ]
