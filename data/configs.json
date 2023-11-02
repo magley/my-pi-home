@@ -1,0 +1,8 @@
+[
+    {
+        "name": "DHT1",
+        "pin": 17,
+        "simulated": true,
+        "read_interval": 0.5
+    }
+]
