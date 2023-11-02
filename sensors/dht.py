@@ -71,8 +71,16 @@ def read_dht(pin: int, wakeup_delay = DHTLIB_DHT11_WAKEUP, timeout = DHTLIB_TIME
         return DHTReading(humidity, temperature, DHTCode.DHTLIB_OK)
 
 
-# FIXME: This simulator is very primitive. Do something that will produce a wider (yet believable) range of results
-def read_dht_simulated():
-    temperature = 25 + random.randint(-1, 1)
-    humidity = 25 +  random.randint(-1, 1)
-    return DHTReading(temperature, humidity, DHTCode.DHTLIB_OK)
+class Simulator:
+    prev_reading: DHTReading
+
+    def __init__(self):
+        self.prev_reading = DHTReading(20, 25, DHTCode.DHTLIB_OK)
+
+
+    def read_dht(self):
+        humidity = self.prev_reading.humidity +  random.randint(-1, 1)
+        temperature = self.prev_reading.temperature + random.randint(-1, 1)
+        cur_reading = DHTReading(humidity, temperature, DHTCode.DHTLIB_OK)
+        self.prev_reading = cur_reading
+        return cur_reading

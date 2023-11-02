@@ -42,4 +42,4 @@ def _get_appropriate_reader(config: config.SensorConfig) -> ReaderCallback:
     if not config.simulated:
         return functools.partial(dht.read_dht, pin=config.pin)
     else:
-        return dht.read_dht_simulated
+        return dht.Simulator().read_dht
