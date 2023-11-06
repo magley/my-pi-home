@@ -5,6 +5,7 @@ import dataclasses
 @dataclasses.dataclass
 class SensorConfig:
     name: str
+    type: str
     pin: int
     simulated: bool
     read_interval: float

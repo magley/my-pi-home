@@ -5,6 +5,8 @@ LOW = 1
 HIGH = 2
 IN = 3
 BCM = 4
+RISING = 5
+FALLING = 6
 
 def setmode(a):
     pass
@@ -19,4 +21,8 @@ def output(a, b):
 
 
 def input(a):
+    pass
+
+
+def add_event_detect(pin, condition, callback):
     pass

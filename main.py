@@ -1,10 +1,11 @@
 import threading
 import time
 import config
-import components.dht
 import argparse
 import typing
 import RPi.GPIO as GPIO
+from components import dht
+from components import pir
 
 
 class Args(typing.NamedTuple):
@@ -25,9 +26,20 @@ def make_component_loop_threads(configs: list[config.SensorConfig], stop_event: 
     make_thread = lambda target, *args: threading.Thread(target=target, args=args)
     lock = threading.Lock()
 
-    threads.append(make_thread(components.dht.run, configs[0], stop_event, lock))
-    threads.append(make_thread(components.dht.run, configs[1], stop_event, lock))
+    for cfg in configs:
+        func = get_device_run_loop_func(cfg.type)
+        threads.append(make_thread(func, cfg, stop_event, lock))
+
     return threads
+
+
+def get_device_run_loop_func(type: str) -> typing.Callable:
+    map = {
+        'dht': dht.run,
+        'pir': pir.run,
+    }
+
+    return map[type]
 
 
 def start_main_loop(args: Args):

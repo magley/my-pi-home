@@ -1,14 +1,30 @@
 [
     {
         "name": "RDHT1",
+        "type": "dht",
         "pin": 17,
         "simulated": true,
         "read_interval": 2.5
     },
     {
         "name": "RDHT2",
+        "type": "dht",
         "pin": 27,
         "simulated": true,
         "read_interval": 2.4
+    },
+    {
+        "name": "RPIR1",
+        "type": "pir",
+        "pin": 22,
+        "simulated": true,
+        "read_interval": 1.0
+    },
+    {
+        "name": "RPIR2",
+        "type": "pir",
+        "pin": 10,
+        "simulated": true,
+        "read_interval": 2.0
     }
 ]
