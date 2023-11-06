@@ -1,8 +1,14 @@
 [
     {
-        "name": "DHT1",
+        "name": "RDHT1",
         "pin": 17,
         "simulated": true,
-        "read_interval": 0.5
+        "read_interval": 2.5
+    },
+    {
+        "name": "RDHT2",
+        "pin": 27,
+        "simulated": true,
+        "read_interval": 2.4
     }
 ]

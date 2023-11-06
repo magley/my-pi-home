@@ -23,7 +23,10 @@ def parse_args():
 def make_component_loop_threads(configs: list[config.SensorConfig], stop_event: threading.Event):
     threads: list[threading.Thread] = []
     make_thread = lambda target, *args: threading.Thread(target=target, args=args)
-    threads.append(make_thread(components.dht.start_reader_loop, configs[0], stop_event))
+    lock = threading.Lock()
+
+    threads.append(make_thread(components.dht.run, configs[0], stop_event, lock))
+    threads.append(make_thread(components.dht.run, configs[1], stop_event, lock))
     return threads
 
 
