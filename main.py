@@ -21,7 +21,19 @@ def parse_args():
     return Args(args.configs_path, args.main_loop_sleep)
 
 
-def make_component_loop_threads(configs: list[config.SensorConfig], stop_event: threading.Event):
+def make_component_loop_threads(configs: list[config.SensorConfig], stop_event: threading.Event) -> list[threading.Thread]:
+    '''
+    Desc
+    ----
+    Read all devices in the config file and create the appropriate threads.
+
+    Return
+    ------
+    A list containing all the created threads.
+
+    Each thread's runnable is a `run` method for a device component.
+    '''
+
     threads: list[threading.Thread] = []
     make_thread = lambda target, *args: threading.Thread(target=target, args=args)
     lock = threading.Lock()
@@ -34,7 +46,19 @@ def make_component_loop_threads(configs: list[config.SensorConfig], stop_event: 
 
 
 def get_device_run_loop_func(type: str) -> typing.Callable:
-    map = {
+    '''
+    Desc
+    ----
+    Given a `type` (as defined in the config file), return the appropriate device `run` method.
+
+    The method should decide whether to run the simulator or communicate with the rPi.
+
+    The method will run in its own thread.
+
+    The method should loop until a stop event is received.
+    '''
+    
+    map = {''
         'dht': dht.run,
         'pir': pir.run,
     }
@@ -42,11 +66,13 @@ def get_device_run_loop_func(type: str) -> typing.Callable:
     return map[type]
 
 
-def start_main_loop(args: Args):
+def main():
+    args = parse_args()
     stop_event = threading.Event()
     configs = config.load_configs(args.configs_path)
     threads = make_component_loop_threads(configs, stop_event)
     GPIO.setmode(GPIO.BCM)
+
     try:
         for thread in threads:
             thread.start()
@@ -55,11 +81,6 @@ def start_main_loop(args: Args):
     except KeyboardInterrupt:
         print('Setting stop event...')
         stop_event.set()
-
-
-def main():
-    args = parse_args()
-    start_main_loop(args)
 
 
 if __name__ == '__main__':

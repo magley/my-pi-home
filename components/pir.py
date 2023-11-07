@@ -1,7 +1,6 @@
 import sensors.pir as pir
 import functools
 import time
-import typing
 import config
 import threading
 

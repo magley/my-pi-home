@@ -33,8 +33,8 @@ class Simulator:
 
 
     def read(self) -> PIRReading:
-        if random.randint(0, 5) == 0:
-            if  self.motion:
+        if random.randint(1, 3) == 1:
+            if not self.motion:
                 if self.when_motion is not None:
                     self.when_motion()
                 self.motion = True
