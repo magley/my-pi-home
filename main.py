@@ -49,12 +49,17 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
         with print_lock:
             print(f"{time.strftime('%H:%M:%S', time.localtime())} RPIR2 motion")
 
+    def dpir1_on_motion():
+        with print_lock:
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} DPIR1 motion")
+
     threads: list[threading.Thread] = []
     threads.append(make_thread(dht.run, configs['RDHT1'], event, print_lock))
     threads.append(make_thread(dht.run, configs['RDHT2'], event, print_lock))
     threads.append(make_thread(pir.run, configs['RPIR1'], event, print_lock, rpir1_on_motion))
     threads.append(make_thread(pir.run, configs['RPIR2'], event, print_lock, rpir2_on_motion))
     threads.append(make_thread(buzzer.run, configs['DB'], event, print_lock))
+    threads.append(make_thread(pir.run, configs['DPIR1'], event, print_lock, dpir1_on_motion))
 
     return threads
 

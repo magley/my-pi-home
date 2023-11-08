@@ -33,5 +33,12 @@
         "pin": 9,
         "simulated": true,
         "read_interval": 1.0
+    },
+    {
+        "name": "DPIR1",
+        "type": "pir",
+        "pin": 11,
+        "simulated": true,
+        "read_interval": 3.0
     }
 ]
