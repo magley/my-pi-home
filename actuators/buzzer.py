@@ -1,5 +1,5 @@
+import threading
 import time
-import typing
 from RPi import GPIO
 
 
@@ -15,11 +15,13 @@ def buzz(pin: int):
     return (do_buzz, stop_buzz)
 
 
-def buzz_simulator(pin: int):
+def buzz_simulator(pin: int, print_lock: threading.Lock):
     def do_buzz():
-        print(f"{time.strftime('%H:%M:%S', time.localtime())} Start buzzing on pin {pin}")
+        with print_lock:
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} Start buzzing on pin {pin}")
 
     def stop_buzz():
-        print(f"{time.strftime('%H:%M:%S', time.localtime())} Stop buzzing on pin {pin}")
+        with print_lock:
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} Stop buzzing on pin {pin}")
     
     return (do_buzz, stop_buzz)

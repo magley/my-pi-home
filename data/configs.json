@@ -32,6 +32,6 @@
         "type": "buzzer",
         "pin": 9,
         "simulated": true,
-        "read_interval": 2.0
+        "read_interval": 1.0
     }
 ]

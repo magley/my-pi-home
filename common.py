@@ -52,6 +52,11 @@ class MyPiEvent():
 
 
     def is_set(self) -> bool:
+        # TODO: If we have only one `threading.Event` in the whole app, then
+        # we could replace `is_set()` with `event.wait()` in all the components.
+        # That would eliminate the need for long polling which would not only
+        # improve the performance, but also make responses instanteneous (as
+        # opposed to having to wait for sleep() to finish first.
         return self.event.is_set()
     
 

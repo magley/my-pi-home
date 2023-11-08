@@ -7,12 +7,12 @@ import threading
 from common import MyPiEvent, MyPiEventType
 
 
-def run(config: config.SensorConfig, event: MyPiEvent, lock: threading.Lock):
+def run(config: config.SensorConfig, event: MyPiEvent, print_lock: threading.Lock):
     """
     `when_motion` is a callback function invoked whenever motion is detected. It takes no arguments.
     """
 
-    on_buzz, on_stop_buzz = _get_buzzer(config)
+    on_buzz, on_stop_buzz = _get_buzzer(config, print_lock)
     while True:
         if event.is_set(MyPiEventType.STOP):
             print('Stopping buzzer loop')
@@ -28,7 +28,7 @@ def run(config: config.SensorConfig, event: MyPiEvent, lock: threading.Lock):
         time.sleep(config.read_interval)
 
 
-def _get_buzzer(config: config.SensorConfig) -> typing.Tuple[typing.Callable, typing.Callable]:
+def _get_buzzer(config: config.SensorConfig, print_lock: threading.Lock) -> typing.Tuple[typing.Callable, typing.Callable]:
     """
     Returns a tuple of 2 functions: on_buzz, on_stop_buzz.
     Each should get called when the buzz/stop buzz event is set.
@@ -37,4 +37,4 @@ def _get_buzzer(config: config.SensorConfig) -> typing.Tuple[typing.Callable, ty
     if not config.simulated:
         return buzzer.buzz(config.pin)
     else:
-        return buzzer.buzz_simulator(config.pin)
+        return buzzer.buzz_simulator(config.pin, print_lock)
