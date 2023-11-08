@@ -12,4 +12,9 @@ class SensorConfig:
 
 
 def load_configs(path):
-    return [SensorConfig(**x) for x in json.load(open(path))]
+    list_of_dict = json.load(open(path))
+    res = {
+        x['name']: SensorConfig(**x) for x in list_of_dict
+    }
+
+    return res

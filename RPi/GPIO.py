@@ -8,19 +8,19 @@ BCM = 4
 RISING = 5
 FALLING = 6
 
-def setmode(a):
+def setmode(mode):
     pass
 
 
-def setup(a, b):
+def setup(pin, kind):
     pass
 
 
-def output(a, b):
+def output(pin, val):
     pass
 
 
-def input(a):
+def input(pin):
     pass
 
 

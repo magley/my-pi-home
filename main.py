@@ -1,5 +1,6 @@
 import threading
 import time
+from common import MyPiEvent
 import config
 import argparse
 import typing
@@ -21,7 +22,7 @@ def parse_args():
     return Args(args.configs_path, args.main_loop_sleep)
 
 
-def make_component_loop_threads(configs: list[config.SensorConfig], stop_event: threading.Event) -> list[threading.Thread]:
+def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: MyPiEvent) -> list[threading.Thread]:
     '''
     Desc
     ----
@@ -34,43 +35,34 @@ def make_component_loop_threads(configs: list[config.SensorConfig], stop_event: 
     Each thread's runnable is a `run` method for a device component.
     '''
 
-    threads: list[threading.Thread] = []
-    make_thread = lambda target, *args: threading.Thread(target=target, args=args)
     lock = threading.Lock()
 
-    for cfg in configs:
-        func = get_device_run_loop_func(cfg.type)
-        threads.append(make_thread(func, cfg, stop_event, lock))
+    def make_thread(target: typing.Callable, *args):
+        return threading.Thread(target=target, args=args)
+
+    def rpir1_on_motion():
+        with lock:
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} RPIR1 motion")
+
+    def rpir2_on_motion():
+        with lock:
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} RPIR2 motion")
+
+    threads: list[threading.Thread] = []
+    threads.append(make_thread(dht.run, configs['RDHT1'], event, lock))
+    threads.append(make_thread(dht.run, configs['RDHT2'], event, lock))
+    threads.append(make_thread(pir.run, configs['RPIR1'], event, lock, rpir1_on_motion))
+    threads.append(make_thread(pir.run, configs['RPIR2'], event, lock, rpir2_on_motion))
 
     return threads
 
 
-def get_device_run_loop_func(type: str) -> typing.Callable:
-    '''
-    Desc
-    ----
-    Given a `type` (as defined in the config file), return the appropriate device `run` method.
-
-    The method should decide whether to run the simulator or communicate with the rPi.
-
-    The method will run in its own thread.
-
-    The method should loop until a stop event is received.
-    '''
-    
-    map = {''
-        'dht': dht.run,
-        'pir': pir.run,
-    }
-
-    return map[type]
-
-
 def main():
     args = parse_args()
-    stop_event = threading.Event()
+
+    event = MyPiEvent()
     configs = config.load_configs(args.configs_path)
-    threads = make_component_loop_threads(configs, stop_event)
+    threads = make_component_loop_threads(configs, event)
     GPIO.setmode(GPIO.BCM)
 
     try:
@@ -78,9 +70,10 @@ def main():
             thread.start()
         while True:
             time.sleep(args.main_loop_sleep)
+
     except KeyboardInterrupt:
         print('Setting stop event...')
-        stop_event.set()
+        event.set_stop_event()
 
 
 if __name__ == '__main__':

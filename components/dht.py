@@ -4,13 +4,14 @@ import time
 import typing
 import config
 import threading
+from common import MyPiEvent, MyPiEventType
 
 
-def run(config: config.SensorConfig, stop_event: threading.Event, lock: threading.Lock):
+def run(config: config.SensorConfig, event: MyPiEvent, lock: threading.Lock):
     reader = _get_reader(config)
 
     while True:
-        if stop_event.is_set():
+        if event.is_set(MyPiEventType.STOP):
             print('Stopping dht loop')
             break
         reading = reader()
@@ -22,12 +23,7 @@ def _print_reading(reading: dht.DHTReading, config: config.SensorConfig, lock: t
     t = time.localtime()
 
     with lock:
-        print("-" * 25)
-        print(f"Timestamp: {time.strftime('%H:%M:%S', t)}")
-        print(f"Sensor: {config.name}")
-        print(f"Code: {reading.code}")
-        print(f"Humidity: {reading.humidity}%")
-        print(f"Temperature: {reading.temperature}°C")
+        print(f"{time.strftime('%H:%M:%S', t)} {config.name} {reading.humidity}% {reading.temperature}°C")
 
 
 ReaderCallback = typing.Callable[[], dht.DHTReading]

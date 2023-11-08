@@ -1,46 +1,13 @@
-import RPi.GPIO as GPIO
 import typing
-import time
-import enum
+import RPi.GPIO as GPIO
 import random
 
 
-class PIRReading(typing.NamedTuple):
-    motion: bool
-
-
-def read(pin: int, when_motion = None, when_no_motion = None) -> PIRReading:
+def read(pin: int, when_motion: typing.Callable):
     GPIO.setup(pin, GPIO.IN)
-
-    if when_motion is not None:
-        GPIO.add_event_detect(pin, GPIO.RISING, callback=when_motion)
-    if when_no_motion is not None:
-        GPIO.add_event_detect(pin, GPIO.FALLING, callback=when_no_motion)
-
-    time.sleep(0.5)
-
-    if GPIO.input(pin) == GPIO.HIGH:
-        return PIRReading(True)
-    else:
-        return PIRReading(False)
+    GPIO.add_event_detect(pin, GPIO.RISING, callback=when_motion)
 
 
-class Simulator:
-    def __init__(self, when_motion = None, when_no_motion = None):
-        self.motion = False
-        self.when_motion = when_motion
-        self.when_no_motion = when_no_motion
-
-
-    def read(self) -> PIRReading:
-        if random.randint(1, 3) == 1:
-            if not self.motion:
-                if self.when_motion is not None:
-                    self.when_motion()
-                self.motion = True
-            else:
-                self.motion = False
-                if self.when_no_motion is not None:
-                    self.when_no_motion()
-
-        return PIRReading(self.motion)
+def read_simulator(pin: int, when_motion: typing.Callable):
+    if random.randint(1, 3) == 1:
+        when_motion()

@@ -1,34 +1,28 @@
+import typing
 import sensors.pir as pir
 import functools
 import time
 import config
 import threading
+from common import MyPiEvent, MyPiEventType
 
 
-def run(config: config.SensorConfig, stop_event: threading.Event, lock: threading.Lock):
-    reader = _get_reader(config)
+def run(config: config.SensorConfig, event: MyPiEvent, lock: threading.Lock, when_motion: typing.Callable):
+    """
+    `when_motion` is a callback function invoked whenever motion is detected. It takes no arguments.
+    """
+
+    reader = _get_reader(config, when_motion)
     while True:
-        if stop_event.is_set():
+        if event.is_set(MyPiEventType.STOP):
             print('Stopping pir loop')
             break
-        reading = reader()
-        _print_reading(reading, config, lock)
+        reader()
         time.sleep(config.read_interval)
 
 
-def _print_reading(reading: pir.PIRReading, config: config.SensorConfig, lock: threading.Lock):
-    t = time.localtime()
-
-    with lock:
-        print("-" * 25)
-        print(f"Timestamp: {time.strftime('%H:%M:%S', t)}")
-        print(f"Sensor: {config.name}")
-        print(f"Motion: {'YES' if reading.motion else 'NO'}")
-
-
-
-def _get_reader(config: config.SensorConfig):
+def _get_reader(config: config.SensorConfig, when_motion: typing.Callable):
     if not config.simulated:
-        return functools.partial(pir.read, pin=config.pin)
+        return functools.partial(pir.read, pin=config.pin, when_motion=when_motion)
     else:
-        return pir.Simulator().read
+        return functools.partial(pir.read_simulator, pin=config.pin, when_motion=when_motion)
