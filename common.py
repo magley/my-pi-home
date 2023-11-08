@@ -4,6 +4,7 @@ import threading
 class MyPiEventType(Enum):
     STOP = 0,
     BUZZ = 1,
+    STOP_BUZZ = 2,
 
 
 class MyPiEvent():
@@ -23,6 +24,7 @@ class MyPiEvent():
     def __init__(self):
         self.type: MyPiEventType = MyPiEventType.STOP
         self.event = threading.Event()
+        self.pin = 0
 
 
     def set(self, type: MyPiEventType):
@@ -43,8 +45,27 @@ class MyPiEvent():
         self.event.set()
 
 
+    def set_buzz_event(self, pin: int, do_buzz: bool):
+        self.type = MyPiEventType.BUZZ if do_buzz else MyPiEventType.STOP_BUZZ
+        self.pin = pin
+        self.event.set()
+
+
     def is_set(self) -> bool:
         return self.event.is_set()
+    
+
+    def consume(self):
+        """
+        Consume the event, thus making it "unset".
+
+        Use this for events that only a single device should respond to, like
+        a buzzer. 
+        Events such as `STOP` should be handled by all threads and therefore
+        should never be "consumed".
+        """
+
+        self.event.clear()
     
 
     def is_set(self, type: MyPiEventType) -> bool:

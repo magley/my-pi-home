@@ -26,5 +26,12 @@
         "pin": 10,
         "simulated": true,
         "read_interval": 2.0
+    },
+    {
+        "name": "DB",
+        "type": "buzzer",
+        "pin": 9,
+        "simulated": true,
+        "read_interval": 2.0
     }
 ]

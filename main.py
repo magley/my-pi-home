@@ -7,6 +7,7 @@ import typing
 import RPi.GPIO as GPIO
 from components import dht
 from components import pir
+from components import buzzer
 
 
 class Args(typing.NamedTuple):
@@ -53,6 +54,7 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
     threads.append(make_thread(dht.run, configs['RDHT2'], event, lock))
     threads.append(make_thread(pir.run, configs['RPIR1'], event, lock, rpir1_on_motion))
     threads.append(make_thread(pir.run, configs['RPIR2'], event, lock, rpir2_on_motion))
+    threads.append(make_thread(buzzer.run, configs['DB'], event, lock))
 
     return threads
 
@@ -68,7 +70,15 @@ def main():
     try:
         for thread in threads:
             thread.start()
-        while True:
+
+        time.sleep(5)
+        event.set_buzz_event(configs['DB'].pin, True)
+        time.sleep(5)
+        event.set_buzz_event(configs['DB'].pin, False)
+        time.sleep(1)
+        event.set_buzz_event(configs['DB'].pin, True)
+
+        while True:   
             time.sleep(args.main_loop_sleep)
 
     except KeyboardInterrupt:
