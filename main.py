@@ -8,6 +8,7 @@ import RPi.GPIO as GPIO
 from components import dht
 from components import pir
 from components import buzzer
+from components import mds
 
 
 class Args(typing.NamedTuple):
@@ -53,6 +54,10 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
         with print_lock:
             print(f"{time.strftime('%H:%M:%S', time.localtime())} DPIR1 motion")
 
+    def ds1_on_read(val: int):
+        with print_lock:
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} DS1 {val}")
+
     threads: list[threading.Thread] = []
     threads.append(make_thread(dht.run, configs['RDHT1'], event, print_lock))
     threads.append(make_thread(dht.run, configs['RDHT2'], event, print_lock))
@@ -60,6 +65,7 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
     threads.append(make_thread(pir.run, configs['RPIR2'], event, print_lock, rpir2_on_motion))
     threads.append(make_thread(buzzer.run, configs['DB'], event, print_lock))
     threads.append(make_thread(pir.run, configs['DPIR1'], event, print_lock, dpir1_on_motion))
+    threads.append(make_thread(mds.run, configs['DS1'], event, print_lock, ds1_on_read))
 
     return threads
 
@@ -124,7 +130,7 @@ def gui_app(threads: list, event: MyPiEvent, configs: dict, args: Args, print_lo
         def room_buzzer_off():
             event.set_buzz_event(configs['DB'].pin, False)
 
-        app = App(title="guizero")
+        app = App(title="my pi home gui")
         PushButton(app, text="Toggle buzzer on", command=room_buzzer_on)
         PushButton(app, text="Toggle buzzer off", command=room_buzzer_off)
 

@@ -40,5 +40,12 @@
         "pin": 11,
         "simulated": true,
         "read_interval": 3.0
+    },
+    {
+        "name": "DS1",
+        "type": "mds",
+        "pin": 0,
+        "simulated": true,
+        "read_interval": 0.5
     }
 ]

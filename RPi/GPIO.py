@@ -24,5 +24,5 @@ def input(pin):
     pass
 
 
-def add_event_detect(pin, condition, callback):
+def add_event_detect(pin, condition, callback, bouncetime=100):
     pass
