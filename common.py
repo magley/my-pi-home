@@ -5,6 +5,8 @@ class MyPiEventType(Enum):
     STOP = 0,
     BUZZ = 1,
     STOP_BUZZ = 2,
+    LED_ON = 3,
+    LED_OFF = 4
 
 
 class MyPiEvent():
@@ -47,6 +49,12 @@ class MyPiEvent():
 
     def set_buzz_event(self, pin: int, do_buzz: bool):
         self.type = MyPiEventType.BUZZ if do_buzz else MyPiEventType.STOP_BUZZ
+        self.pin = pin
+        self.event.set()
+
+
+    def set_led_event(self, pin: int, turn_on: bool):
+        self.type = MyPiEventType.LED_ON if turn_on else MyPiEventType.LED_OFF
         self.pin = pin
         self.event.set()
 

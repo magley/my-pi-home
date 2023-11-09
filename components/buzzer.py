@@ -8,10 +8,6 @@ from common import MyPiEvent, MyPiEventType
 
 
 def run(config: config.SensorConfig, event: MyPiEvent, print_lock: threading.Lock):
-    """
-    `when_motion` is a callback function invoked whenever motion is detected. It takes no arguments.
-    """
-
     on_buzz, on_stop_buzz = _get_buzzer(config, print_lock)
     while True:
         if event.is_set(MyPiEventType.STOP):

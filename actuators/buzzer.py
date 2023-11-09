@@ -10,7 +10,7 @@ def buzz(pin: int):
         GPIO.output(pin, GPIO.HIGH)
 
     def stop_buzz():
-        GPIO.output(pin, GPIO.HIGH)
+        GPIO.output(pin, GPIO.LOW)
 
     return (do_buzz, stop_buzz)
 

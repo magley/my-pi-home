@@ -9,6 +9,7 @@ from components import dht
 from components import pir
 from components import buzzer
 from components import mds
+from components import led
 
 
 class Args(typing.NamedTuple):
@@ -58,6 +59,9 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
         with print_lock:
             print(f"{time.strftime('%H:%M:%S', time.localtime())} DS1 {val}")
 
+    # TODO: Have DHT accept a callback too, instead of hardcoding the print.
+    # (For consistency).
+
     threads: list[threading.Thread] = []
     threads.append(make_thread(dht.run, configs['RDHT1'], event, print_lock))
     threads.append(make_thread(dht.run, configs['RDHT2'], event, print_lock))
@@ -66,6 +70,7 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
     threads.append(make_thread(buzzer.run, configs['DB'], event, print_lock))
     threads.append(make_thread(pir.run, configs['DPIR1'], event, print_lock, dpir1_on_motion))
     threads.append(make_thread(mds.run, configs['DS1'], event, print_lock, ds1_on_read))
+    threads.append(make_thread(led.run, configs['DL'], event, print_lock))
 
     return threads
 
@@ -88,6 +93,8 @@ def console_app(threads: list, event: MyPiEvent, configs: dict, args: Args, prin
             print('quit')
             print("room-buzz-on")
             print("room-buzz-off")
+            print("door-light-on")
+            print("door-light-off")
             print('-' * 30)
             print('Enter command:', end='')
             i = input()
@@ -96,6 +103,10 @@ def console_app(threads: list, event: MyPiEvent, configs: dict, args: Args, prin
                 event.set_buzz_event(configs['DB'].pin, True)
             elif i == 'room-buzz-off':
                 event.set_buzz_event(configs['DB'].pin, False)
+            elif i == 'door-light-on':
+                event.set_led_event(configs['DL'].pin, True)
+            elif i == 'door-light-off':
+                event.set_led_event(configs['DL'].pin, False)
             elif i == 'listen':
                 print_lock.release()
                 try:
@@ -130,9 +141,18 @@ def gui_app(threads: list, event: MyPiEvent, configs: dict, args: Args, print_lo
         def room_buzzer_off():
             event.set_buzz_event(configs['DB'].pin, False)
 
+        def door_light_on():
+            event.set_led_event(configs['DL'].pin, True)
+
+        def door_light_off():
+            event.set_led_event(configs['DL'].pin, False)
+
+
         app = App(title="my pi home gui")
         PushButton(app, text="Toggle buzzer on", command=room_buzzer_on)
         PushButton(app, text="Toggle buzzer off", command=room_buzzer_off)
+        PushButton(app, text="Door light on", command=door_light_on)
+        PushButton(app, text="Door light off", command=door_light_off)
 
         for thread in threads:
             thread.start()

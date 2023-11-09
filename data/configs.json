@@ -47,5 +47,12 @@
         "pin": 0,
         "simulated": true,
         "read_interval": 0.5
+    },
+    {
+        "name": "DL",
+        "type": "led",
+        "pin": 5,
+        "simulated": true,
+        "read_interval": 1.5
     }
 ]
