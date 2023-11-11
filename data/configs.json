@@ -54,5 +54,12 @@
         "pins": [5],
         "simulated": true,
         "read_interval": 1.5
+    },
+    {
+        "name": "DUS1",
+        "type": "uds",
+        "pins": [23, 24],
+        "simulated": true,
+        "read_interval": 1
     }
 ]

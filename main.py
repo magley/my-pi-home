@@ -10,8 +10,9 @@ from components import pir
 from components import buzzer
 from components import mds
 from components import led
+from components import uds
 from sensors.dht import DHTReading
-
+from sensors.uds import UDSReading, UDSCode
 
 class Args(typing.NamedTuple):
     configs_path: str
@@ -65,6 +66,12 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
         with print_lock:
             print(f"{time.strftime('%H:%M:%S', t)} {name} {reading.humidity}% {reading.temperature}°C")
 
+    def uds_on_read(name: str, reading: UDSReading):
+        t = time.localtime()
+        with print_lock:
+            val = 'Timed out' if reading.code == UDSCode.TIMED_OUT else reading.distance
+            print(f"{time.strftime('%H:%M:%S', t)} {name} {val}")
+
     threads: list[threading.Thread] = []
     threads.append(make_thread(dht.run, configs['RDHT1'], event, lambda val: dht_on_read('RDHT1', val)))
     threads.append(make_thread(dht.run, configs['RDHT2'], event, lambda val: dht_on_read('RDHT2', val)))
@@ -74,6 +81,7 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
     threads.append(make_thread(pir.run, configs['DPIR1'], event, print_lock, dpir1_on_motion))
     threads.append(make_thread(mds.run, configs['DS1'], event, print_lock, ds1_on_read))
     threads.append(make_thread(led.run, configs['DL'], event, print_lock))
+    threads.append(make_thread(uds.run, configs['DUS1'], event, lambda val: uds_on_read('DUS1', val)))
 
     return threads
 
