@@ -9,10 +9,10 @@ def setup(pin: int, when_motion: typing.Callable):
     GPIO.add_event_detect(pin, GPIO.RISING, callback=when_motion)
 
 
-def setup_simulator(pin: int, when_motion: typing.Callable):
+def setup_simulator(when_motion: typing.Callable):
     def read():
         while True:
             if random.randint(1, 3) == 1:
                 when_motion()
-            time.sleep(1)
+            time.sleep(2)
     threading.Thread(target=read, daemon=True).start()

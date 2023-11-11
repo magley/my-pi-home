@@ -1,7 +1,4 @@
-import threading
-import time
 from RPi import GPIO
-import threading
 
 
 def setup(pin: int):

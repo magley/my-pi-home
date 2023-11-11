@@ -29,7 +29,7 @@ def parse_args():
     return Args(args.configs_path, args.main_loop_sleep)
 
 
-def setup_components(configs: dict[str, SensorConfig], print_lock: threading.Lock):
+def setup_devices(configs: dict[str, SensorConfig], print_lock: threading.Lock):
     def make_thread(target: typing.Callable, *args):
         return threading.Thread(target=target, args=args, daemon=True)
 
@@ -162,7 +162,7 @@ def gui_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, prin
         console_app(event, configs, args, print_lock)
 
 
-def event_thread(event: MyPiEvent, print_lock):
+def event_thread(event: MyPiEvent, print_lock: threading.Lock):
     while True:
         if event.wait():
             match event.type:
@@ -198,7 +198,7 @@ def main():
     configs = config.load_configs(args.configs_path)
     print_lock = threading.Lock()
     GPIO.setmode(GPIO.BCM)
-    setup_components(configs, print_lock)
+    setup_devices(configs, print_lock)
 
     event = MyPiEvent()
     threading.Thread(target=event_thread, args=(event, print_lock), daemon=True).start()
