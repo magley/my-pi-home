@@ -26,6 +26,6 @@ def run(config: config.SensorConfig, event: MyPiEvent, lock: threading.Lock, on_
 
 def _get_reader(config: config.SensorConfig, on_read: typing.Callable):
     if not config.simulated:
-        return functools.partial(mds.read, pin=config.pin, on_read=on_read)
+        return functools.partial(mds.read, pin=config.pins[0], on_read=on_read)
     else:
-        return functools.partial(mds.read_simulator, pin=config.pin, on_read=on_read)
+        return functools.partial(mds.read_simulator, pin=config.pins[0], on_read=on_read)

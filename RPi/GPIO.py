@@ -7,12 +7,13 @@ IN = 3
 BCM = 4
 RISING = 5
 FALLING = 6
+PUD_DOWN = 7
 
 def setmode(mode):
     pass
 
 
-def setup(pin, kind):
+def setup(pin, kind, pull_up_down=None):
     pass
 
 

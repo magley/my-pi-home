@@ -10,7 +10,10 @@ from components import pir
 from components import buzzer
 from components import mds
 from components import led
-
+from components import uds
+from components import mbkp
+from sensors.dht import DHTReading
+from sensors.uds import UDSReading, UDSCode
 
 class Args(typing.NamedTuple):
     configs_path: str
@@ -58,24 +61,41 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
     def ds1_on_read(val: int):
         with print_lock:
             print(f"{time.strftime('%H:%M:%S', time.localtime())} DS1 {val}")
+    
+    def dht_on_read(name: str, reading: DHTReading):
+        t = time.localtime()
+        with print_lock:
+            print(f"{time.strftime('%H:%M:%S', t)} {name} {reading.humidity}% {reading.temperature}°C")
 
-    # TODO: Have DHT accept a callback too, instead of hardcoding the print.
-    # (For consistency).
+    def uds_on_read(name: str, reading: UDSReading):
+        t = time.localtime()
+        with print_lock:
+            val = 'Timed out' if reading.code == UDSCode.TIMED_OUT else f"{reading.distance_in_cm}cm"
+            print(f"{time.strftime('%H:%M:%S', t)} {name} {val}")
+
+    def mbkp_on_read(name: str, val: str):
+        t = time.localtime()
+        if val == '':
+            return
+        with print_lock:
+            print(f"{time.strftime('%H:%M:%S', t)} {name} {val}")
 
     threads: list[threading.Thread] = []
-    threads.append(make_thread(dht.run, configs['RDHT1'], event, print_lock))
-    threads.append(make_thread(dht.run, configs['RDHT2'], event, print_lock))
+    threads.append(make_thread(dht.run, configs['RDHT1'], event, lambda val: dht_on_read('RDHT1', val)))
+    threads.append(make_thread(dht.run, configs['RDHT2'], event, lambda val: dht_on_read('RDHT2', val)))
     threads.append(make_thread(pir.run, configs['RPIR1'], event, print_lock, rpir1_on_motion))
     threads.append(make_thread(pir.run, configs['RPIR2'], event, print_lock, rpir2_on_motion))
     threads.append(make_thread(buzzer.run, configs['DB'], event, print_lock))
     threads.append(make_thread(pir.run, configs['DPIR1'], event, print_lock, dpir1_on_motion))
     threads.append(make_thread(mds.run, configs['DS1'], event, print_lock, ds1_on_read))
     threads.append(make_thread(led.run, configs['DL'], event, print_lock))
+    threads.append(make_thread(uds.run, configs['DUS1'], event, lambda val: uds_on_read('DUS1', val)))
+    threads.append(make_thread(mbkp.run, configs['DMS'], event, lambda val: mbkp_on_read('DMS', val)))
 
     return threads
 
 
-def console_app(threads: list, event: MyPiEvent, configs: dict, args: Args, print_lock: threading.Lock):
+def console_app(threads: list, event: MyPiEvent, configs: dict[str, config.SensorConfig], args: Args, print_lock: threading.Lock):
     try:
         for thread in threads:
             thread.start()
@@ -100,13 +120,13 @@ def console_app(threads: list, event: MyPiEvent, configs: dict, args: Args, prin
             i = input()
 
             if i == 'room-buzz-on':
-                event.set_buzz_event(configs['DB'].pin, True)
+                event.set_buzz_event(configs['DB'].pins[0], True)
             elif i == 'room-buzz-off':
-                event.set_buzz_event(configs['DB'].pin, False)
+                event.set_buzz_event(configs['DB'].pins[0], False)
             elif i == 'door-light-on':
-                event.set_led_event(configs['DL'].pin, True)
+                event.set_led_event(configs['DL'].pins[0], True)
             elif i == 'door-light-off':
-                event.set_led_event(configs['DL'].pin, False)
+                event.set_led_event(configs['DL'].pins[0], False)
             elif i == 'listen':
                 print_lock.release()
                 try:
@@ -130,22 +150,22 @@ def console_app(threads: list, event: MyPiEvent, configs: dict, args: Args, prin
         event.set_stop_event()
 
 
-def gui_app(threads: list, event: MyPiEvent, configs: dict, args: Args, print_lock: threading.Lock):
+def gui_app(threads: list, event: MyPiEvent, configs: dict[str, config.SensorConfig], args: Args, print_lock: threading.Lock):
     err = False
     try:
         from guizero import App, Text, PushButton
 
         def room_buzzer_on():
-            event.set_buzz_event(configs['DB'].pin, True)
+            event.set_buzz_event(configs['DB'].pins[0], True)
 
         def room_buzzer_off():
-            event.set_buzz_event(configs['DB'].pin, False)
+            event.set_buzz_event(configs['DB'].pins[0], False)
 
         def door_light_on():
-            event.set_led_event(configs['DL'].pin, True)
+            event.set_led_event(configs['DL'].pins[0], True)
 
         def door_light_off():
-            event.set_led_event(configs['DL'].pin, False)
+            event.set_led_event(configs['DL'].pins[0], False)
 
 
         app = App(title="my pi home gui")

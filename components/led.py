@@ -14,10 +14,10 @@ def run(config: config.SensorConfig, event: MyPiEvent, print_lock: threading.Loc
             print('Stopping led loop')
             break
     
-        if event.is_set(MyPiEventType.LED_ON) and event.pin == config.pin:
+        if event.is_set(MyPiEventType.LED_ON) and event.pin == config.pins[0]:
             turn_on()
             event.consume()
-        elif event.is_set(MyPiEventType.LED_OFF) and event.pin == config.pin:
+        elif event.is_set(MyPiEventType.LED_OFF) and event.pin == config.pins[0]:
             turn_off()
             event.consume()
 
@@ -31,6 +31,6 @@ def _get_led(config: config.SensorConfig, print_lock: threading.Lock) -> typing.
     """
 
     if not config.simulated:
-        return led.light(config.pin)
+        return led.light(config.pins[0])
     else:
-        return led.light_simulator(config.pin, print_lock)
+        return led.light_simulator(config.pins[0], print_lock)
