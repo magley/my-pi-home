@@ -100,13 +100,13 @@ def console_app(event: MyPiEvent, configs: dict[str, config.SensorConfig], args:
             i = input()
 
             if i == 'room-buzz-on':
-                event.set_buzz_event(configs['DB'].pins[0], True)
+                event.set_buzz_event(configs['DB'], True)
             elif i == 'room-buzz-off':
-                event.set_buzz_event(configs['DB'].pins[0], False)
+                event.set_buzz_event(configs['DB'], False)
             elif i == 'door-light-on':
-                event.set_led_event(configs['DL'].pins[0], True)
+                event.set_led_event(configs['DL'], True)
             elif i == 'door-light-off':
-                event.set_led_event(configs['DL'].pins[0], False)
+                event.set_led_event(configs['DL'], False)
             elif i == 'listen':
                 print_lock.release()
                 try:
@@ -134,16 +134,16 @@ def gui_app(event: MyPiEvent, configs: dict[str, config.SensorConfig], args: Arg
         from guizero import App, Text, PushButton
 
         def room_buzzer_on():
-            event.set_buzz_event(configs['DB'].pins[0], True)
+            event.set_buzz_event(configs['DB'], True)
 
         def room_buzzer_off():
-            event.set_buzz_event(configs['DB'].pins[0], False)
+            event.set_buzz_event(configs['DB'], False)
 
         def door_light_on():
-            event.set_led_event(configs['DL'].pins[0], True)
+            event.set_led_event(configs['DL'], True)
 
         def door_light_off():
-            event.set_led_event(configs['DL'].pins[0], False)
+            event.set_led_event(configs['DL'], False)
 
 
         app = App(title="my pi home gui")
@@ -161,29 +161,29 @@ def gui_app(event: MyPiEvent, configs: dict[str, config.SensorConfig], args: Arg
         console_app(event, configs, args, print_lock)
 
 
-def event_thread(configs: dict[str, config.SensorConfig], event: MyPiEvent, print_lock):
+def event_thread(event: MyPiEvent, print_lock):
     while True:
         if event.wait():
             match event.type:
                 case MyPiEventType.EMPTY:
                     raise Exception('We should not see the EMPTY event.')
                 case MyPiEventType.BUZZ:
-                    cfg = configs['DB']
+                    cfg = event.sensor
                     buzzer.buzz(cfg)
                     with print_lock:
                         print(f"{time.strftime('%H:%M:%S', time.localtime())} Start buzzing on pin {cfg.pins[0]}")
                 case MyPiEventType.STOP_BUZZ:
-                    cfg = configs['DB']
+                    cfg = event.sensor
                     buzzer.stop_buzz(cfg)
                     with print_lock:
                         print(f"{time.strftime('%H:%M:%S', time.localtime())} Stop buzzing on pin {cfg.pins[0]}")
                 case MyPiEventType.LED_ON:
-                    cfg = configs['DL']
+                    cfg = event.sensor
                     led.turn_on(cfg)
                     with print_lock:
                         print(f"{time.strftime('%H:%M:%S', time.localtime())} Turn on LED on pin {cfg.pins[0]}")
                 case MyPiEventType.LED_OFF:
-                    cfg = configs['DL']
+                    cfg = event.sensor
                     led.turn_off(cfg)
                     with print_lock:
                         print(f"{time.strftime('%H:%M:%S', time.localtime())} Turn off LED on pin {cfg.pins[0]}")
@@ -200,7 +200,7 @@ def main():
     setup_components(configs, print_lock)
 
     event = MyPiEvent()
-    threading.Thread(target=event_thread, args=(configs, event, print_lock), daemon=True).start()
+    threading.Thread(target=event_thread, args=(event, print_lock), daemon=True).start()
     gui_app(event, configs, args, print_lock)
 
 
