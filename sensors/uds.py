@@ -54,4 +54,4 @@ def read(pin_trig: int, pin_echo: int, wakeup_delay = WAKEUP_DELAY, soundwave_de
 
 
 def read_simulator():
-    return UDSReading(UDSCode.OK, random.randint(10000, 20000))
+    return UDSReading(UDSCode.OK, random.randint(2, 400))
