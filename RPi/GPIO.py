@@ -22,7 +22,7 @@ def output(pin, val):
 
 
 def input(pin):
-    pass
+    return 0
 
 
 def add_event_detect(pin, condition, callback, bouncetime=100):

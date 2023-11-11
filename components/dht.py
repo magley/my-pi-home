@@ -2,15 +2,14 @@ import sensors.dht as dht
 import functools
 import time
 import typing
-import config
-from common import MyPiEvent, MyPiEventType
+from config import SensorConfig
 
 
-def run(config: config.SensorConfig, on_read: typing.Callable[[dht.DHTReading], None]):
+def run(config: SensorConfig, on_read: typing.Callable[[SensorConfig, dht.DHTReading], None]):
     reader = _get_reader(config)
     while True:
         reading = reader()
-        on_read(reading)
+        on_read(config, reading)
         time.sleep(config.read_interval)
 
 
@@ -18,7 +17,7 @@ ReaderCallback = typing.Callable[[], dht.DHTReading]
 
 
 # TODO: Possible type shadowing?
-def _get_reader(config: config.SensorConfig) -> ReaderCallback:
+def _get_reader(config: SensorConfig) -> ReaderCallback:
     if not config.simulated:
         return functools.partial(dht.read_dht, pin=config.pins[0])
     else:

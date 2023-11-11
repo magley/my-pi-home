@@ -1,16 +1,15 @@
 from config import SensorConfig
-from common import MyPiEvent, MyPiEventType
 import typing
 import time
 import functools
 import sensors.mbkp as mbkp
 
 
-def run(config: SensorConfig, on_read: typing.Callable[[str], None]):
+def run(config: SensorConfig, on_read: typing.Callable[[SensorConfig, str], None]):
     reader = _get_reader(config)
     while True:
         reading = reader()
-        on_read(reading)
+        on_read(config, reading)
         time.sleep(config.read_interval)
 
 

@@ -1,14 +1,13 @@
-import typing
 import RPi.GPIO as GPIO
 import random
 
 
-def read(pin: int, on_read: typing.Callable):
+def read(pin: int):
     # Works as a button, but we care about its current state, not the event.
 
     GPIO.setup(pin, GPIO.IN)
-    on_read(GPIO.input(pin))
+    return GPIO.input(pin)
 
 
-def read_simulator(pin: int, on_read: typing.Callable):
-    on_read(random.randint(0, 1))
+def read_simulator():
+    return random.randint(0, 1)

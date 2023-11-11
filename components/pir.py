@@ -1,13 +1,9 @@
 import typing
 import sensors.pir as pir
-import functools
-import time
-import config
-import threading
-from common import MyPiEvent, MyPiEventType
+from config import SensorConfig
 
-def setup(config: config.SensorConfig, when_motion: typing.Callable):
+def setup(config: SensorConfig, when_motion: typing.Callable[[SensorConfig], None]):
     if not config.simulated:
-        pir.setup(config.pins[0], when_motion)
+        pir.setup(config.pins[0], lambda: when_motion(config))
     else:
-        pir.setup_simulator(when_motion)
+        pir.setup_simulator(config.pins[0], lambda: when_motion(config))

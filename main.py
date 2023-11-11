@@ -2,6 +2,7 @@ import threading
 import time
 from common import MyPiEvent, MyPiEventType
 import config
+from config import SensorConfig
 import argparse
 import typing
 import RPi.GPIO as GPIO
@@ -28,57 +29,57 @@ def parse_args():
     return Args(args.configs_path, args.main_loop_sleep)
 
 
-def setup_components(configs: dict[str, config.SensorConfig], print_lock: threading.Lock):
+def setup_components(configs: dict[str, SensorConfig], print_lock: threading.Lock):
     def make_thread(target: typing.Callable, *args):
         return threading.Thread(target=target, args=args, daemon=True)
 
-    def pir_on_motion(name: str):
+    def pir_on_motion(config: SensorConfig):
         with print_lock:
-            print(f"{time.strftime('%H:%M:%S', time.localtime())} {name} motion")
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} {config.name} motion")
 
-    def mds_on_read(name: str, val: int):
+    def mds_on_read(config: SensorConfig, val: int):
         with print_lock:
-            print(f"{time.strftime('%H:%M:%S', time.localtime())} {name} {val}")
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} {config.name} {val}")
     
-    def dht_on_read(name: str, reading: DHTReading):
+    def dht_on_read(config: SensorConfig, reading: DHTReading):
         t = time.localtime()
         with print_lock:
-            print(f"{time.strftime('%H:%M:%S', t)} {name} {reading.humidity}% {reading.temperature}°C")
+            print(f"{time.strftime('%H:%M:%S', t)} {config.name} {reading.humidity}% {reading.temperature}°C")
 
-    def uds_on_read(name: str, reading: UDSReading):
+    def uds_on_read(config: SensorConfig, reading: UDSReading):
         t = time.localtime()
         with print_lock:
             val = 'Timed out' if reading.code == UDSCode.TIMED_OUT else f"{reading.distance_in_cm}cm"
-            print(f"{time.strftime('%H:%M:%S', t)} {name} {val}")
+            print(f"{time.strftime('%H:%M:%S', t)} {config.name} {val}")
 
-    def mbkp_on_read(name: str, val: str):
+    def mbkp_on_read(config: SensorConfig, val: str):
         t = time.localtime()
         if val == '':
             return
         with print_lock:
-            print(f"{time.strftime('%H:%M:%S', t)} {name} {val}")
+            print(f"{time.strftime('%H:%M:%S', t)} {config.name} {val}")
 
     for cfg in configs.values():
         match cfg.type:
             case 'dht':
-                make_thread(dht.run, cfg, lambda val: dht_on_read(cfg.name, val)).start()
+                make_thread(dht.run, cfg, dht_on_read).start()
             case 'pir':
-                pir.setup(cfg, lambda: pir_on_motion(cfg.name))
+                pir.setup(cfg, pir_on_motion)
             case 'buzzer':
                 buzzer.setup(cfg)
             case 'mds':
-                make_thread(mds.run, cfg, lambda val: mds_on_read(cfg.name, val))
+                make_thread(mds.run, cfg, mds_on_read)
             case 'led':
                 led.setup(cfg)
             case 'uds':
-                make_thread(uds.run, cfg, lambda val: uds_on_read(cfg.name, val)).start()
+                make_thread(uds.run, cfg, uds_on_read).start()
             case 'mbkp':
-                make_thread(mbkp.run, cfg, lambda val: mbkp_on_read(cfg.name, val)).start()
+                make_thread(mbkp.run, cfg, mbkp_on_read).start()
             case _:
                 raise Exception('Unknown config type')
 
 
-def console_app(event: MyPiEvent, configs: dict[str, config.SensorConfig], args: Args, print_lock: threading.Lock):
+def console_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
     try:
         while True:
             try:
@@ -128,7 +129,7 @@ def console_app(event: MyPiEvent, configs: dict[str, config.SensorConfig], args:
             pass
 
 
-def gui_app(event: MyPiEvent, configs: dict[str, config.SensorConfig], args: Args, print_lock: threading.Lock):
+def gui_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
     err = False
     try:
         from guizero import App, Text, PushButton
@@ -171,22 +172,22 @@ def event_thread(event: MyPiEvent, print_lock):
                     cfg = event.sensor
                     buzzer.buzz(cfg)
                     with print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} Start buzzing on pin {cfg.pins[0]}")
+                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Start buzzing")
                 case MyPiEventType.STOP_BUZZ:
                     cfg = event.sensor
                     buzzer.stop_buzz(cfg)
                     with print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} Stop buzzing on pin {cfg.pins[0]}")
+                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Stop buzzing")
                 case MyPiEventType.LED_ON:
                     cfg = event.sensor
                     led.turn_on(cfg)
                     with print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} Turn on LED on pin {cfg.pins[0]}")
+                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn on LED")
                 case MyPiEventType.LED_OFF:
                     cfg = event.sensor
                     led.turn_off(cfg)
                     with print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} Turn off LED on pin {cfg.pins[0]}")
+                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn off LED")
                 case _:
                     raise Exception('Unknown event type')
             event.consume()
