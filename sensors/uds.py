@@ -17,7 +17,7 @@ class UDSCode(enum.Enum):
 
 class UDSReading(typing.NamedTuple):
     code: UDSCode
-    distance: float
+    distance_in_cm: float
 
 
 def read(pin_trig: int, pin_echo: int, wakeup_delay = WAKEUP_DELAY, soundwave_delay = SOUNDWAVE_DELAY):

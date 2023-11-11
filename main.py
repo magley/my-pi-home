@@ -70,7 +70,7 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
     def uds_on_read(name: str, reading: UDSReading):
         t = time.localtime()
         with print_lock:
-            val = 'Timed out' if reading.code == UDSCode.TIMED_OUT else reading.distance
+            val = 'Timed out' if reading.code == UDSCode.TIMED_OUT else f"{reading.distance_in_cm}cm"
             print(f"{time.strftime('%H:%M:%S', t)} {name} {val}")
 
     def mbkp_on_read(name: str, val: str):
