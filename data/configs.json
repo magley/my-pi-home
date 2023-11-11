@@ -61,5 +61,12 @@
         "pins": [23, 24],
         "simulated": true,
         "read_interval": 1
+    },
+    {
+        "name": "DMS",
+        "type": "mbkp",
+        "pins": [25, 8, 7, 1, 12, 16, 20, 21],
+        "simulated": true,
+        "read_interval": 2
     }
 ]
