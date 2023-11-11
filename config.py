@@ -6,7 +6,7 @@ import dataclasses
 class SensorConfig:
     name: str
     type: str
-    pin: int
+    pins: list[int]
     simulated: bool
     read_interval: float
 

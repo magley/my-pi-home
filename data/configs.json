@@ -2,56 +2,56 @@
     {
         "name": "RDHT1",
         "type": "dht",
-        "pin": 17,
+        "pins": [17],
         "simulated": true,
         "read_interval": 2.5
     },
     {
         "name": "RDHT2",
         "type": "dht",
-        "pin": 27,
+        "pins": [27],
         "simulated": true,
         "read_interval": 2.4
     },
     {
         "name": "RPIR1",
         "type": "pir",
-        "pin": 22,
+        "pins": [22],
         "simulated": true,
         "read_interval": 1.0
     },
     {
         "name": "RPIR2",
         "type": "pir",
-        "pin": 10,
+        "pins": [10],
         "simulated": true,
         "read_interval": 2.0
     },
     {
         "name": "DB",
         "type": "buzzer",
-        "pin": 9,
+        "pins": [9],
         "simulated": true,
         "read_interval": 1.0
     },
     {
         "name": "DPIR1",
         "type": "pir",
-        "pin": 11,
+        "pins": [11],
         "simulated": true,
         "read_interval": 3.0
     },
     {
         "name": "DS1",
         "type": "mds",
-        "pin": 0,
+        "pins": [0],
         "simulated": true,
         "read_interval": 0.5
     },
     {
         "name": "DL",
         "type": "led",
-        "pin": 5,
+        "pins": [5],
         "simulated": true,
         "read_interval": 1.5
     }

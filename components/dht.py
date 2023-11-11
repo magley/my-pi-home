@@ -32,6 +32,6 @@ ReaderCallback = typing.Callable[[], dht.DHTReading]
 # TODO: Possible type shadowing?
 def _get_reader(config: config.SensorConfig) -> ReaderCallback:
     if not config.simulated:
-        return functools.partial(dht.read_dht, pin=config.pin)
+        return functools.partial(dht.read_dht, pin=config.pins[0])
     else:
         return dht.Simulator().read_dht

@@ -75,7 +75,7 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
     return threads
 
 
-def console_app(threads: list, event: MyPiEvent, configs: dict, args: Args, print_lock: threading.Lock):
+def console_app(threads: list, event: MyPiEvent, configs: dict[str, config.SensorConfig], args: Args, print_lock: threading.Lock):
     try:
         for thread in threads:
             thread.start()
@@ -100,13 +100,13 @@ def console_app(threads: list, event: MyPiEvent, configs: dict, args: Args, prin
             i = input()
 
             if i == 'room-buzz-on':
-                event.set_buzz_event(configs['DB'].pin, True)
+                event.set_buzz_event(configs['DB'].pins[0], True)
             elif i == 'room-buzz-off':
-                event.set_buzz_event(configs['DB'].pin, False)
+                event.set_buzz_event(configs['DB'].pins[0], False)
             elif i == 'door-light-on':
-                event.set_led_event(configs['DL'].pin, True)
+                event.set_led_event(configs['DL'].pins[0], True)
             elif i == 'door-light-off':
-                event.set_led_event(configs['DL'].pin, False)
+                event.set_led_event(configs['DL'].pins[0], False)
             elif i == 'listen':
                 print_lock.release()
                 try:
@@ -130,22 +130,22 @@ def console_app(threads: list, event: MyPiEvent, configs: dict, args: Args, prin
         event.set_stop_event()
 
 
-def gui_app(threads: list, event: MyPiEvent, configs: dict, args: Args, print_lock: threading.Lock):
+def gui_app(threads: list, event: MyPiEvent, configs: dict[str, config.SensorConfig], args: Args, print_lock: threading.Lock):
     err = False
     try:
         from guizero import App, Text, PushButton
 
         def room_buzzer_on():
-            event.set_buzz_event(configs['DB'].pin, True)
+            event.set_buzz_event(configs['DB'].pins[0], True)
 
         def room_buzzer_off():
-            event.set_buzz_event(configs['DB'].pin, False)
+            event.set_buzz_event(configs['DB'].pins[0], False)
 
         def door_light_on():
-            event.set_led_event(configs['DL'].pin, True)
+            event.set_led_event(configs['DL'].pins[0], True)
 
         def door_light_off():
-            event.set_led_event(configs['DL'].pin, False)
+            event.set_led_event(configs['DL'].pins[0], False)
 
 
         app = App(title="my pi home gui")

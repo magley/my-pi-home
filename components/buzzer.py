@@ -14,10 +14,10 @@ def run(config: config.SensorConfig, event: MyPiEvent, print_lock: threading.Loc
             print('Stopping buzzer loop')
             break
     
-        if event.is_set(MyPiEventType.BUZZ) and event.pin == config.pin:
+        if event.is_set(MyPiEventType.BUZZ) and event.pin == config.pins[0]:
             on_buzz()
             event.consume()
-        elif event.is_set(MyPiEventType.STOP_BUZZ) and event.pin == config.pin:
+        elif event.is_set(MyPiEventType.STOP_BUZZ) and event.pin == config.pins[0]:
             on_stop_buzz()
             event.consume()
 
@@ -31,6 +31,6 @@ def _get_buzzer(config: config.SensorConfig, print_lock: threading.Lock) -> typi
     """
 
     if not config.simulated:
-        return buzzer.buzz(config.pin)
+        return buzzer.buzz(config.pins[0])
     else:
-        return buzzer.buzz_simulator(config.pin, print_lock)
+        return buzzer.buzz_simulator(config.pins[0], print_lock)
