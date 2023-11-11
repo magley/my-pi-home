@@ -10,6 +10,7 @@ from components import pir
 from components import buzzer
 from components import mds
 from components import led
+from sensors.dht import DHTReading
 
 
 class Args(typing.NamedTuple):
@@ -58,13 +59,15 @@ def make_component_loop_threads(configs: dict[str, config.SensorConfig], event: 
     def ds1_on_read(val: int):
         with print_lock:
             print(f"{time.strftime('%H:%M:%S', time.localtime())} DS1 {val}")
-
-    # TODO: Have DHT accept a callback too, instead of hardcoding the print.
-    # (For consistency).
+    
+    def dht_on_read(name: str, reading: DHTReading):
+        t = time.localtime()
+        with print_lock:
+            print(f"{time.strftime('%H:%M:%S', t)} {name} {reading.humidity}% {reading.temperature}°C")
 
     threads: list[threading.Thread] = []
-    threads.append(make_thread(dht.run, configs['RDHT1'], event, print_lock))
-    threads.append(make_thread(dht.run, configs['RDHT2'], event, print_lock))
+    threads.append(make_thread(dht.run, configs['RDHT1'], event, lambda val: dht_on_read('RDHT1', val)))
+    threads.append(make_thread(dht.run, configs['RDHT2'], event, lambda val: dht_on_read('RDHT2', val)))
     threads.append(make_thread(pir.run, configs['RPIR1'], event, print_lock, rpir1_on_motion))
     threads.append(make_thread(pir.run, configs['RPIR2'], event, print_lock, rpir2_on_motion))
     threads.append(make_thread(buzzer.run, configs['DB'], event, print_lock))
