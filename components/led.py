@@ -6,31 +6,14 @@ import config
 import threading
 from common import MyPiEvent, MyPiEventType
 
-
-def run(config: config.SensorConfig, event: MyPiEvent, print_lock: threading.Lock):
-    turn_on, turn_off = _get_led(config, print_lock)
-    while True:
-        if event.is_set(MyPiEventType.STOP):
-            print('Stopping led loop')
-            break
-    
-        if event.is_set(MyPiEventType.LED_ON) and event.pin == config.pins[0]:
-            turn_on()
-            event.consume()
-        elif event.is_set(MyPiEventType.LED_OFF) and event.pin == config.pins[0]:
-            turn_off()
-            event.consume()
-
-        time.sleep(config.read_interval)
-
-
-def _get_led(config: config.SensorConfig, print_lock: threading.Lock) -> typing.Tuple[typing.Callable, typing.Callable]:
-    """
-    Returns a tuple of 2 functions: turn_on, turn_off.
-    Each should get called when the LED turn on/off event is set.
-    """
-
+def setup(config: config.SensorConfig):
     if not config.simulated:
-        return led.light(config.pins[0])
-    else:
-        return led.light_simulator(config.pins[0], print_lock)
+        return led.setup(config.pins[0])
+
+
+def turn_on(config: config.SensorConfig):
+    led.turn_on_simulated() if config.simulated else led.turn_on(config.pins[0])
+
+
+def turn_off(config: config.SensorConfig):
+    led.turn_off_simulated() if config.simulated else led.turn_off(config.pins[0])

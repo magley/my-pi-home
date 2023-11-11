@@ -6,13 +6,9 @@ import config
 from common import MyPiEvent, MyPiEventType
 
 
-def run(config: config.SensorConfig, event: MyPiEvent, on_read: typing.Callable[[dht.DHTReading], None]):
+def run(config: config.SensorConfig, on_read: typing.Callable[[dht.DHTReading], None]):
     reader = _get_reader(config)
-
     while True:
-        if event.is_set(MyPiEventType.STOP):
-            print('Stopping dht loop')
-            break
         reading = reader()
         on_read(reading)
         time.sleep(config.read_interval)

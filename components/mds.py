@@ -9,7 +9,7 @@ import threading
 from common import MyPiEvent, MyPiEventType
 
 
-def run(config: config.SensorConfig, event: MyPiEvent, lock: threading.Lock, on_read: typing.Callable):
+def run(config: config.SensorConfig, on_read: typing.Callable):
     """
     `on_read` is a callback function invoked whenever door status data is read.
     It takes 1 argument denoting the state (open/close).
@@ -17,9 +17,6 @@ def run(config: config.SensorConfig, event: MyPiEvent, lock: threading.Lock, on_
 
     reader = _get_reader(config, on_read)
     while True:
-        if event.is_set(MyPiEventType.STOP):
-            print('Stopping mds loop')
-            break
         reader()
         time.sleep(config.read_interval)
 

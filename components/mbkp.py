@@ -6,12 +6,9 @@ import functools
 import sensors.mbkp as mbkp
 
 
-def run(config: SensorConfig, event: MyPiEvent, on_read: typing.Callable[[str], None]):
+def run(config: SensorConfig, on_read: typing.Callable[[str], None]):
     reader = _get_reader(config)
     while True:
-        if event.is_set(MyPiEventType.STOP):
-            print('Stopping mbkp loop')
-            break
         reading = reader()
         on_read(reading)
         time.sleep(config.read_interval)

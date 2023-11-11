@@ -1,12 +1,12 @@
-from enum import Enum
+from enum import Enum, auto
 import threading
 
 class MyPiEventType(Enum):
-    STOP = 0,
-    BUZZ = 1,
-    STOP_BUZZ = 2,
-    LED_ON = 3,
-    LED_OFF = 4
+    EMPTY = auto()
+    BUZZ = auto(),
+    STOP_BUZZ = auto(),
+    LED_ON = auto(),
+    LED_OFF = auto()
 
 
 class MyPiEvent():
@@ -24,7 +24,7 @@ class MyPiEvent():
     """
 
     def __init__(self):
-        self.type: MyPiEventType = MyPiEventType.STOP
+        self.type: MyPiEventType = MyPiEventType.EMPTY
         self.event = threading.Event()
         self.pin = 0
 
@@ -39,14 +39,6 @@ class MyPiEvent():
         self.event.set()
 
 
-    def set_stop_event(self):
-        """
-        Set the event that stops all threads from running.
-        """
-        self.type = MyPiEventType.STOP
-        self.event.set()
-
-
     def set_buzz_event(self, pin: int, do_buzz: bool):
         self.type = MyPiEventType.BUZZ if do_buzz else MyPiEventType.STOP_BUZZ
         self.pin = pin
@@ -57,15 +49,6 @@ class MyPiEvent():
         self.type = MyPiEventType.LED_ON if turn_on else MyPiEventType.LED_OFF
         self.pin = pin
         self.event.set()
-
-
-    def is_set(self) -> bool:
-        # TODO: If we have only one `threading.Event` in the whole app, then
-        # we could replace `is_set()` with `event.wait()` in all the components.
-        # That would eliminate the need for long polling which would not only
-        # improve the performance, but also make responses instanteneous (as
-        # opposed to having to wait for sleep() to finish first.
-        return self.event.is_set()
     
 
     def consume(self):
@@ -79,11 +62,7 @@ class MyPiEvent():
         """
 
         self.event.clear()
-    
 
-    def is_set(self, type: MyPiEventType) -> bool:
-        """
-        Shorthand for `event.is_set() and event.type == type`
-        """
 
-        return self.event.is_set() and self.type == type
+    def wait(self):
+        return self.event.wait()
