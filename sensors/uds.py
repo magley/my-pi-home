@@ -5,8 +5,9 @@ import enum
 import random
 
 
-WAKEUP = 0.2
-MISC = 0.00001  # FIXME: What is this delay for?
+WAKEUP_DELAY = 0.2
+SOUNDWAVE_DELAY = 0.00001
+SPEED_OF_SOUND_MAYBE = 34300
 
 
 class UDSCode(enum.Enum):
@@ -19,14 +20,14 @@ class UDSReading(typing.NamedTuple):
     distance: float
 
 
-def read(pin_trig: int, pin_echo: int, wakeup_delay = WAKEUP, misc_delay = MISC):
+def read(pin_trig: int, pin_echo: int, wakeup_delay = WAKEUP_DELAY, soundwave_delay = SOUNDWAVE_DELAY):
     GPIO.setup(pin_trig, GPIO.OUT)
     GPIO.setup(pin_echo, GPIO.IN)
 
     GPIO.output(pin_trig, False)
     time.sleep(wakeup_delay)
     GPIO.output(pin_trig, True)
-    time.sleep(misc_delay)
+    time.sleep(soundwave_delay)
     GPIO.output(pin_trig, False)
     pulse_start_time = time.time()
     pulse_end_time = time.time()
@@ -48,7 +49,7 @@ def read(pin_trig: int, pin_echo: int, wakeup_delay = WAKEUP, misc_delay = MISC)
         iter += 1
 
     pulse_duration = pulse_end_time - pulse_start_time
-    distance = (pulse_duration * 34300)/2
+    distance = (pulse_duration * SPEED_OF_SOUND_MAYBE)/2
     return UDSReading(UDSCode.OK, distance)
 
 
