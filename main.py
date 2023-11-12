@@ -1,235 +1,30 @@
-import threading
-import time
-from common import MyPiEvent, MyPiEventType
-import config
-from config import SensorConfig
+from common import load_configs
 import argparse
 import typing
-import RPi.GPIO as GPIO
-import enum
-from components import dht
-from components import pir
-from components import buzzer
-from components import mds
-from components import led
-from components import uds
-from components import mbkp
-from sensors.dht import DHTReading
-from sensors.uds import UDSReading, UDSCode
-
-
-class Interface(enum.Enum):
-    GUI = enum.auto()
-    CLI = enum.auto()
+from app import AppType, App
 
 
 class Args(typing.NamedTuple):
     configs_path: str
-    main_loop_sleep: int
-    interface: Interface
+    app_type: AppType
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--configs-path', default='data/configs.json')
-    parser.add_argument('--main-loop-sleep', default=1, type=int)
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--gui', action='store_const', dest='interface', const='gui', default='gui')
-    group.add_argument('--cli', action='store_const', dest='interface', const='cli')
+    group.add_argument('--gui', action='store_const', dest='app_type', const='gui', default='gui')
+    group.add_argument('--cli', action='store_const', dest='app_type', const='cli')
     args = parser.parse_args()
-    interface = Interface.CLI if args.interface == 'cli' else Interface.GUI
-    return Args(args.configs_path, args.main_loop_sleep, interface)
-
-
-def setup_devices(configs: dict[str, SensorConfig], print_lock: threading.Lock):
-    def make_thread(target: typing.Callable, *args):
-        return threading.Thread(target=target, args=args, daemon=True)
-
-    def pir_on_motion(config: SensorConfig):
-        with print_lock:
-            print(f"{time.strftime('%H:%M:%S', time.localtime())} {config.name} motion")
-
-    def mds_on_read(config: SensorConfig, val: int):
-        with print_lock:
-            print(f"{time.strftime('%H:%M:%S', time.localtime())} {config.name} {val}")
-    
-    def dht_on_read(config: SensorConfig, reading: DHTReading):
-        t = time.localtime()
-        with print_lock:
-            print(f"{time.strftime('%H:%M:%S', t)} {config.name} {reading.humidity}% {reading.temperature}°C")
-
-    def uds_on_read(config: SensorConfig, reading: UDSReading):
-        t = time.localtime()
-        with print_lock:
-            val = 'Timed out' if reading.code == UDSCode.TIMED_OUT else f"{reading.distance_in_cm}cm"
-            print(f"{time.strftime('%H:%M:%S', t)} {config.name} {val}")
-
-    def mbkp_on_read(config: SensorConfig, val: str):
-        t = time.localtime()
-        if val == '':
-            return
-        with print_lock:
-            print(f"{time.strftime('%H:%M:%S', t)} {config.name} Input: {val}")
-
-    for cfg in configs.values():
-        match cfg.type:
-            case 'dht':
-                make_thread(dht.run, cfg, dht_on_read).start()
-            case 'pir':
-                pir.setup(cfg, pir_on_motion)
-            case 'buzzer':
-                buzzer.setup(cfg)
-            case 'mds':
-                make_thread(mds.run, cfg, mds_on_read)
-            case 'led':
-                led.setup(cfg)
-            case 'uds':
-                make_thread(uds.run, cfg, uds_on_read).start()
-            case 'mbkp':
-                make_thread(mbkp.run, cfg, mbkp_on_read).start()
-            case _:
-                raise Exception('Unknown config type')
-
-
-def _console_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
-    try:
-        print_lock.release()
-    except:
-        pass
-
-    print_lock.acquire()
-    print("\nSelect command")
-    print('-' * 30)
-    print("listen\t\t(Use keyboard interrupt to return to menu)")
-    print('quit')
-    print("room-buzz-on")
-    print("room-buzz-off")
-    print("door-light-on")
-    print("door-light-off")
-    print('-' * 30)
-    print('Enter command:', end='')
-    i = input()
-
-    if i == 'room-buzz-on':
-        event.set_buzz_event(configs['DB'], True)
-    elif i == 'room-buzz-off':
-        event.set_buzz_event(configs['DB'], False)
-    elif i == 'door-light-on':
-        event.set_led_event(configs['DL'], True)
-    elif i == 'door-light-off':
-        event.set_led_event(configs['DL'], False)
-    elif i == 'listen':
-        print_lock.release()
-        try:
-            while True:
-                time.sleep(args.main_loop_sleep)
-        except KeyboardInterrupt:
-            print("Stopped listening...")
-    elif i == 'quit':
-        return True
-    else:
-        print("Unknown command")
-
-    return False
-
-
-def console_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
-    done = False
-    while not done:
-        done = _console_app(event, configs, args, print_lock)
-
-
-def gui_app(event: MyPiEvent, configs: dict[str, SensorConfig]):
-    from guizero import App, Text, PushButton
-
-    def room_buzzer_on():
-        event.set_buzz_event(configs['DB'], True)
-
-    def room_buzzer_off():
-        event.set_buzz_event(configs['DB'], False)
-
-    def door_light_on():
-        event.set_led_event(configs['DL'], True)
-
-    def door_light_off():
-        event.set_led_event(configs['DL'], False)
-
-
-    app = App(title="my pi home gui")
-    PushButton(app, text="Toggle buzzer on", command=room_buzzer_on)
-    PushButton(app, text="Toggle buzzer off", command=room_buzzer_off)
-    PushButton(app, text="Door light on", command=door_light_on)
-    PushButton(app, text="Door light off", command=door_light_off)
-
-    app.display()
-
-
-def app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
-    match args.interface:
-        case Interface.GUI:
-            try:
-                gui_app(event, configs)
-            except KeyboardInterrupt as e:
-                raise e
-            except:
-                print("Could not start GUI app. Fallback to console app...")
-                console_app(event, configs, args, print_lock)
-        case Interface.CLI:
-            console_app(event, configs, args, print_lock)
-        case _:
-            raise Exception('Unknown interface type')
-
-
-def event_thread(event: MyPiEvent, print_lock: threading.Lock):
-    while True:
-        if event.wait():
-            match event.type:
-                case MyPiEventType.EMPTY:
-                    raise Exception('We should not see the EMPTY event.')
-                case MyPiEventType.BUZZ:
-                    cfg = event.sensor
-                    buzzer.buzz(cfg)
-                    with print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Start buzzing")
-                case MyPiEventType.STOP_BUZZ:
-                    cfg = event.sensor
-                    buzzer.stop_buzz(cfg)
-                    with print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Stop buzzing")
-                case MyPiEventType.LED_ON:
-                    cfg = event.sensor
-                    led.turn_on(cfg)
-                    with print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn on LED")
-                case MyPiEventType.LED_OFF:
-                    cfg = event.sensor
-                    led.turn_off(cfg)
-                    with print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn off LED")
-                case _:
-                    raise Exception('Unknown event type')
-            event.consume()
+    app_type = AppType.CLI if args.app_type == 'cli' else AppType.GUI
+    return Args(args.configs_path, app_type)
 
 
 def main():
     args = parse_args()
-    configs = config.load_configs(args.configs_path)
-    print_lock = threading.Lock()
-    GPIO.setmode(GPIO.BCM)
-    setup_devices(configs, print_lock)
-
-    event = MyPiEvent()
-    threading.Thread(target=event_thread, args=(event, print_lock), daemon=True).start()
-    try:
-        app(event, configs, args, print_lock)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        # FIXME: Is this necessary?
-        try:
-            print_lock.release()
-        except:
-            pass
+    configs = load_configs(args.configs_path)
+    app = App(args.app_type, configs)
+    app.run()
 
 
 if __name__ == '__main__':
