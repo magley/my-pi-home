@@ -1,6 +1,6 @@
 import typing
 import sensors.pir as pir
-from config import SensorConfig
+from common import SensorConfig
 
 def setup(config: SensorConfig, when_motion: typing.Callable[[SensorConfig], None]):
     if not config.simulated:

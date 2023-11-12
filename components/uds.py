@@ -1,4 +1,4 @@
-from config import SensorConfig
+from common import SensorConfig
 import typing
 import sensors.uds as uds
 import functools

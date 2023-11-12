@@ -1,6 +1,26 @@
 from enum import Enum, auto
 import threading
-import config
+import dataclasses
+import json
+
+
+@dataclasses.dataclass
+class SensorConfig:
+    name: str
+    type: str
+    pins: list[int]
+    simulated: bool
+    read_interval: float
+
+
+def load_configs(path):
+    list_of_dict = json.load(open(path))
+    res = {
+        x['name']: SensorConfig(**x) for x in list_of_dict
+    }
+
+    return res
+
 
 class MyPiEventType(Enum):
     EMPTY = auto()
@@ -27,7 +47,7 @@ class MyPiEvent():
     def __init__(self):
         self.type: MyPiEventType = MyPiEventType.EMPTY
         self.event = threading.Event()
-        self.sensor: config.SensorConfig
+        self.sensor: SensorConfig
 
 
     def set(self, type: MyPiEventType):
@@ -40,13 +60,13 @@ class MyPiEvent():
         self.event.set()
 
 
-    def set_buzz_event(self, sensor: config.SensorConfig, do_buzz: bool):
+    def set_buzz_event(self, sensor: SensorConfig, do_buzz: bool):
         self.type = MyPiEventType.BUZZ if do_buzz else MyPiEventType.STOP_BUZZ
         self.sensor = sensor
         self.event.set()
 
 
-    def set_led_event(self, sensor: config.SensorConfig, turn_on: bool):
+    def set_led_event(self, sensor: SensorConfig, turn_on: bool):
         self.type = MyPiEventType.LED_ON if turn_on else MyPiEventType.LED_OFF
         self.sensor = sensor
         self.event.set()
