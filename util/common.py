@@ -103,7 +103,12 @@ class PrintThread():
     def _print_thread(self):
         while True:
             if self.is_unpaused.wait():
-                print(self.queue.get())
+                item = self.queue.get()
+                if not self.is_unpaused.is_set():
+                    # Got paused since last get - handle item when we unpause
+                    self.queue.put(item)
+                else:
+                    print(item)
 
 
     def put(self, item: str, ignore_paused = False):
