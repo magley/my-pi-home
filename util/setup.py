@@ -1,15 +1,8 @@
 from util.app import App
-import typing
 import threading
 from util.common import SensorConfig
 import time
-from components import dht
-from components import pir
-from components import buzzer
-from components import mds
-from components import led
-from components import uds
-from components import mbkp
+import util.devices as devs
 from sensors.dht import DHTReading
 from sensors.uds import UDSReading, UDSCode
 from util.common import MyPiEventType
@@ -17,8 +10,8 @@ import RPi.GPIO as GPIO
 
 
 def setup_devices(app: App):
-    def make_thread(target: typing.Callable, *args):
-        return threading.Thread(target=target, args=args, daemon=True)
+    def make_reader(*args):
+        return threading.Thread(target=devs.run_reader, args=args, daemon=True).start()
 
     def pir_on_motion(config: SensorConfig):
         with app.print_lock:
@@ -50,19 +43,19 @@ def setup_devices(app: App):
     for cfg in app.configs.values():
         match cfg.type:
             case 'dht':
-                make_thread(dht.run, cfg, dht_on_read).start()
+                make_reader(cfg, devs.dht_get_reader, dht_on_read)
             case 'pir':
-                pir.setup(cfg, pir_on_motion)
+                devs.pir_setup(cfg, pir_on_motion)
             case 'buzzer':
-                buzzer.setup(cfg)
+                devs.buzzer_setup(cfg)
             case 'mds':
-                make_thread(mds.run, cfg, mds_on_read)
+                make_reader(cfg, devs.mds_get_reader, mds_on_read)
             case 'led':
-                led.setup(cfg)
+                devs.led_setup(cfg)
             case 'uds':
-                make_thread(uds.run, cfg, uds_on_read).start()
+                make_reader(cfg, devs.uds_get_reader, uds_on_read)
             case 'mbkp':
-                make_thread(mbkp.run, cfg, mbkp_on_read).start()
+                make_reader(cfg, devs.mbkp_get_reader, mbkp_on_read)
             case _:
                 raise Exception('Unknown config type')
 
@@ -79,24 +72,24 @@ def _event_thread(app: App):
                     raise Exception('We should not see the EMPTY event.')
                 case MyPiEventType.BUZZ:
                     cfg = app.event.sensor
-                    buzzer.buzz(cfg)
+                    devs.buzzer_buzz(cfg)
                     with app.print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Start buzzing")
+                        print(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Start buzzing")
                 case MyPiEventType.STOP_BUZZ:
                     cfg = app.event.sensor
-                    buzzer.stop_buzz(cfg)
+                    devs.buzzer_stop_buzz(cfg)
                     with app.print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Stop buzzing")
+                        print(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Stop buzzing")
                 case MyPiEventType.LED_ON:
                     cfg = app.event.sensor
-                    led.turn_on(cfg)
+                    devs.led_turn_on(cfg)
                     with app.print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn on LED")
+                        print(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn on LED")
                 case MyPiEventType.LED_OFF:
                     cfg = app.event.sensor
-                    led.turn_off(cfg)
+                    devs.led_turn_off(cfg)
                     with app.print_lock:
-                        print(f"{time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn off LED")
+                        print(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn off LED")
                 case _:
                     raise Exception('Unknown event type')
             app.event.consume()

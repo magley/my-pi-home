@@ -21,7 +21,7 @@ def output(pin, val):
     pass
 
 
-def input(pin):
+def input(pin) -> int:
     return 0
 
 
