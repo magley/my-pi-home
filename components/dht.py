@@ -2,7 +2,7 @@ import sensors.dht as dht
 import functools
 import time
 import typing
-from common import SensorConfig
+from util.common import SensorConfig
 
 
 def run(config: SensorConfig, on_read: typing.Callable[[SensorConfig, dht.DHTReading], None]):

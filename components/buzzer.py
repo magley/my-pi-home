@@ -1,5 +1,5 @@
 import actuators.buzzer as buzzer
-from common import SensorConfig
+from util.common import SensorConfig
 
 
 def setup(config: SensorConfig):

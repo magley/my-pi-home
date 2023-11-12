@@ -1,7 +1,7 @@
-from common import load_configs
+from util.common import load_configs
 import argparse
 import typing
-from app import AppType, App
+from util.app import AppType, App
 
 
 class Args(typing.NamedTuple):

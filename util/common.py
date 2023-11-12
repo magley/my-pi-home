@@ -75,11 +75,6 @@ class MyPiEvent():
     def consume(self):
         """
         Consume the event, thus making it "unset".
-
-        Use this for events that only a single device should respond to, like
-        a buzzer. 
-        Events such as `STOP` should be handled by all threads and therefore
-        should never be "consumed".
         """
 
         self.event.clear()

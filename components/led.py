@@ -1,5 +1,5 @@
 import actuators.led as led
-from common import SensorConfig
+from util.common import SensorConfig
 
 def setup(config: SensorConfig):
     if not config.simulated:

@@ -4,7 +4,7 @@ import typing
 import sensors.mds as mds
 import functools
 import time
-from common import SensorConfig
+from util.common import SensorConfig
 
 
 def run(config: SensorConfig, on_read: typing.Callable[[SensorConfig, int], None]):

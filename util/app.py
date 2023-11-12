@@ -1,7 +1,7 @@
 import threading
 import enum
 import time
-from common import MyPiEvent, SensorConfig
+from util.common import MyPiEvent, SensorConfig
 
 
 class AppType(enum.Enum):
@@ -24,9 +24,9 @@ class App:
 
 
     def run(self):
-        import setup
-        setup.setup_devices(self)
-        setup.start_event_thread(self)
+        from util.setup import setup_devices, start_event_thread
+        setup_devices(self)
+        start_event_thread(self)
         try:
             self._run()
         except KeyboardInterrupt:

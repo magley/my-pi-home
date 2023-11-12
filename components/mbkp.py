@@ -1,4 +1,4 @@
-from common import SensorConfig
+from util.common import SensorConfig
 import typing
 import time
 import functools

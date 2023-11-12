@@ -1,7 +1,7 @@
-from app import App
+from util.app import App
 import typing
 import threading
-from common import SensorConfig
+from util.common import SensorConfig
 import time
 from components import dht
 from components import pir
@@ -12,7 +12,7 @@ from components import uds
 from components import mbkp
 from sensors.dht import DHTReading
 from sensors.uds import UDSReading, UDSCode
-from common import MyPiEventType
+from util.common import MyPiEventType
 import RPi.GPIO as GPIO
 
 
