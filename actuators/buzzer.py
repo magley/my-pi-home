@@ -14,7 +14,7 @@ def stop_buzz(pin: int):
 
 
 def do_buzz_simulated():
-     pass
+    pass
 
 def stop_buzz_simulated():
     pass
