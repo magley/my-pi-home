@@ -1,5 +1,6 @@
 from threading import Thread, Event
 from queue import Queue
+import common.colorizer as colorizer
 
 
 class PrintThread():
@@ -28,10 +29,10 @@ class PrintThread():
                     print(item)
 
 
-    def put(self, item: str, ignore_paused = False):
+    def put(self, item: str, color = 'WHITE', ignore_paused = False):
         # Ignore puts while we're not listening to stdout
         if self.is_unpaused.is_set() or ignore_paused:
-            self.queue.put(item)
+            self.queue.put(colorizer.colorize(item, color))
 
 
     def set_paused(self):
