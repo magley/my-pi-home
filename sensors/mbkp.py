@@ -48,8 +48,10 @@ def read(output_pins: OutputPins, input_pins: InputPins):
     return ''.join([_read(OutputRowPin(idx, r), input_pins) for idx, r in enumerate(output_pins)])
 
 
-# Reads only one character per read, unlike unsimulated read
 def read_simulator():
-    row = random.randint(0, 3)
-    key = random.randint(0, 3)
-    return KEYPAD_CHARS[row][key]
+    res = ''
+    for _ in range(random.randint(1, 8)):
+        row = random.randint(0, 3)
+        key = random.randint(0, 3)
+        res += KEYPAD_CHARS[row][key]
+    return res

@@ -12,6 +12,7 @@ class AppType(enum.Enum):
 class App:
     type: AppType
     configs: dict[str, SensorConfig]
+    configs_colors: dict[str, str]
     print_thread: PrintThread
     event: MyPiEvent
 
@@ -19,6 +20,7 @@ class App:
     def __init__(self, type: AppType, configs: dict[str, SensorConfig]):
         self.type = type
         self.configs = configs
+        self.configs_colors = {}
         self.print_thread = PrintThread()
         self.event = MyPiEvent()
 
