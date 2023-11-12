@@ -43,21 +43,30 @@ def setup_devices(app: App):
     for cfg in app.configs.values():
         match cfg.type:
             case 'dht':
+                # dht doesn't have a setup because its reader alternates
+                # dht's pin between IN and OUT
                 make_reader(cfg, devs.dht_get_reader, dht_on_read)
             case 'pir':
                 devs.pir_setup(cfg, pir_on_motion)
             case 'buzzer':
                 devs.buzzer_setup(cfg)
             case 'mds':
+                devs.mds_setup(cfg)
                 make_reader(cfg, devs.mds_get_reader, mds_on_read)
             case 'led':
                 devs.led_setup(cfg)
             case 'uds':
+                devs.uds_setup(cfg)
                 make_reader(cfg, devs.uds_get_reader, uds_on_read)
             case 'mbkp':
+                devs.mbkp_setup(cfg)
                 make_reader(cfg, devs.mbkp_get_reader, mbkp_on_read)
             case _:
                 raise Exception('Unknown config type')
+
+
+def cleanup_devices():
+    GPIO.cleanup()
 
 
 def start_event_thread(app: App):

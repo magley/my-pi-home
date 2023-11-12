@@ -126,8 +126,10 @@ class App:
 
 
     def cleanup(self):
-        # FIXME: Is this necessary?
         try:
+            import setup
+            setup.cleanup_devices()
+            # FIXME: Is this necessary?
             self.print_lock.release()
         except:
             pass

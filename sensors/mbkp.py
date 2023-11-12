@@ -30,6 +30,13 @@ class OutputRowPin(typing.NamedTuple):
     pin: int
 
 
+def setup(output_pins: OutputPins, input_pins: InputPins):
+    for pin in output_pins:
+        GPIO.setup(pin, GPIO.OUT)
+    for pin in input_pins:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+
 def _read(row: OutputRowPin, input_pins: InputPins):
     GPIO.output(row.pin, GPIO.HIGH)
     res = [KEYPAD_CHARS[row.idx][idx] for idx, pin in enumerate(input_pins) if GPIO.input(pin) == 1]
@@ -38,11 +45,6 @@ def _read(row: OutputRowPin, input_pins: InputPins):
 
 
 def read(output_pins: OutputPins, input_pins: InputPins):
-    # FIXME(?): Is calling setup on every call of read() going to break something?
-    for pin in output_pins:
-        GPIO.setup(pin, GPIO.OUT)
-    for pin in input_pins:
-        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     return ''.join([_read(OutputRowPin(idx, r), input_pins) for idx, r in enumerate(output_pins)])
 
 

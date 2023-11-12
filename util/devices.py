@@ -56,11 +56,21 @@ def led_turn_off(config: SensorConfig):
     led.turn_off_simulated() if config.simulated else led.turn_off(config.pins[0])
 
 
+def mbkp_setup(config: SensorConfig):
+    if not config.simulated:
+        mbkp.setup(mbkp.OutputPins(*config.pins[0:4]), mbkp.InputPins(*config.pins[4:]))
+
+
 def mbkp_get_reader(config: SensorConfig):
     if not config.simulated:
-        return lambda: mbkp.read(mbkp.OutputPins(*config.pins[0:4]), input_pins=mbkp.InputPins(*config.pins[4:]))
+        return lambda: mbkp.read(mbkp.OutputPins(*config.pins[0:4]), mbkp.InputPins(*config.pins[4:]))
     else:
         return mbkp.read_simulator
+
+
+def mds_setup(config: SensorConfig):
+    if not config.simulated:
+        mds.setup(config.pins[0])
 
 
 def mds_get_reader(config: SensorConfig):
@@ -75,6 +85,11 @@ def pir_setup(config: SensorConfig, when_motion: Callable[[SensorConfig], None])
         pir.setup(config.pins[0], lambda: when_motion(config))
     else:
         pir.setup_simulator(lambda: when_motion(config))
+
+
+def uds_setup(config: SensorConfig):
+    if not config.simulated:
+        uds.setup(config.pins[0], config.pins[1])
 
 
 def uds_get_reader(config: SensorConfig):

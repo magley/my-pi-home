@@ -2,10 +2,12 @@ import RPi.GPIO as GPIO
 import random
 
 
+def setup(pin: int):
+    GPIO.setup(pin, GPIO.IN)
+
+
 def read(pin: int):
     # Works as a button, but we care about its current state, not the event.
-
-    GPIO.setup(pin, GPIO.IN)
     return GPIO.input(pin)
 
 
