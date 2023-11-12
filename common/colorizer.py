@@ -10,7 +10,7 @@ _COLOR_SEQ_PREF = {
     'BLUE': _code_sequence(34),
     'MAGENTA': _code_sequence(35),
     'CYAN': _code_sequence(36),
-    'WHITE': _code_sequence(37),  # Reserved for actuator triggers
+    'WHITE': _code_sequence(37),
     'BRIGHT_BLACK': _code_sequence(90),
     'BRIGHT_RED': _code_sequence(91),
     'BRIGHT_GREEN': _code_sequence(92),
