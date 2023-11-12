@@ -30,43 +30,22 @@ class OutputRowPin(typing.NamedTuple):
     pin: int
 
 
-def _read(row: OutputRowPin, input_pins: InputPins):
-    c1, c2, c3, c4 = input_pins
+def setup(output_pins: OutputPins, input_pins: InputPins):
+    for pin in output_pins:
+        GPIO.setup(pin, GPIO.OUT)
+    for pin in input_pins:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+
+def _read(row: OutputRowPin, input_pins: InputPins):
     GPIO.output(row.pin, GPIO.HIGH)
-    res: list[str] = []  # Assuming we can hold down multiple keys in one read
-    if(GPIO.input(c1) == 1):
-        res.append(KEYPAD_CHARS[row.idx][0])
-    if(GPIO.input(c2) == 1):
-        res.append(KEYPAD_CHARS[row.idx][1])
-    if(GPIO.input(c3) == 1):
-        res.append(KEYPAD_CHARS[row.idx][2])
-    if(GPIO.input(c4) == 1):
-        res.append(KEYPAD_CHARS[row.idx][3])
+    res = [KEYPAD_CHARS[row.idx][idx] for idx, pin in enumerate(input_pins) if GPIO.input(pin) == 1]
     GPIO.output(row.pin, GPIO.LOW)
-    return res
+    return ''.join(res)
 
 
 def read(output_pins: OutputPins, input_pins: InputPins):
-    r1, r2, r3, r4 = output_pins
-    c1, c2, c3, c4 = input_pins
-
-    # FIXME(?): Is calling setup on every call of read() going to break something?
-    GPIO.setup(r1, GPIO.OUT)
-    GPIO.setup(r2, GPIO.OUT)
-    GPIO.setup(r3, GPIO.OUT)
-    GPIO.setup(r4, GPIO.OUT)
-    GPIO.setup(c1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.setup(c2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.setup(c3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.setup(c4, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-    res: list[str] = []  # Assuming we can hold down multiple rows in one read
-    res.extend(_read(OutputRowPin(0, r1), input_pins))
-    res.extend(_read(OutputRowPin(1, r2), input_pins))
-    res.extend(_read(OutputRowPin(2, r3), input_pins))
-    res.extend(_read(OutputRowPin(3, r4), input_pins))
-    return ''.join(res)
+    return ''.join([_read(OutputRowPin(idx, r), input_pins) for idx, r in enumerate(output_pins)])
 
 
 # Reads only one character per read, unlike unsimulated read

@@ -20,10 +20,12 @@ class UDSReading(typing.NamedTuple):
     distance_in_cm: float
 
 
-def read(pin_trig: int, pin_echo: int, wakeup_delay = WAKEUP_DELAY, soundwave_delay = SOUNDWAVE_DELAY):
+def setup(pin_trig: int, pin_echo: int):
     GPIO.setup(pin_trig, GPIO.OUT)
     GPIO.setup(pin_echo, GPIO.IN)
 
+
+def read(pin_trig: int, pin_echo: int, wakeup_delay = WAKEUP_DELAY, soundwave_delay = SOUNDWAVE_DELAY):
     GPIO.output(pin_trig, False)
     time.sleep(wakeup_delay)
     GPIO.output(pin_trig, True)

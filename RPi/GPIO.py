@@ -21,9 +21,13 @@ def output(pin, val):
     pass
 
 
-def input(pin):
-    pass
+def input(pin) -> int:
+    return 0
 
 
 def add_event_detect(pin, condition, callback, bouncetime=100):
+    pass
+
+
+def cleanup():
     pass
