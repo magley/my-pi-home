@@ -28,6 +28,7 @@ class Args(typing.NamedTuple):
     main_loop_sleep: int
     interface: Interface
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--configs-path', default='data/configs.json')
@@ -90,57 +91,55 @@ def setup_devices(configs: dict[str, SensorConfig], print_lock: threading.Lock):
                 raise Exception('Unknown config type')
 
 
-def console_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
+def _console_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
     try:
-        while True:
-            try:
-                print_lock.release()
-            except:
-                pass
-
-            print_lock.acquire()
-            print("\nSelect command")
-            print('-' * 30)
-            print("listen\t\t(Use keyboard interrupt to return to menu)")
-            print('quit')
-            print("room-buzz-on")
-            print("room-buzz-off")
-            print("door-light-on")
-            print("door-light-off")
-            print('-' * 30)
-            print('Enter command:', end='')
-            i = input()
-
-            if i == 'room-buzz-on':
-                event.set_buzz_event(configs['DB'], True)
-            elif i == 'room-buzz-off':
-                event.set_buzz_event(configs['DB'], False)
-            elif i == 'door-light-on':
-                event.set_led_event(configs['DL'], True)
-            elif i == 'door-light-off':
-                event.set_led_event(configs['DL'], False)
-            elif i == 'listen':
-                print_lock.release()
-                try:
-                    while True:
-                        time.sleep(args.main_loop_sleep)
-                except KeyboardInterrupt:
-                    print("Stopped listening...")
-            elif i == 'quit':
-                break
-            else:
-                print("Unknown command")
-            
-    except KeyboardInterrupt:
+        print_lock.release()
+    except:
         pass
-    finally:
+
+    print_lock.acquire()
+    print("\nSelect command")
+    print('-' * 30)
+    print("listen\t\t(Use keyboard interrupt to return to menu)")
+    print('quit')
+    print("room-buzz-on")
+    print("room-buzz-off")
+    print("door-light-on")
+    print("door-light-off")
+    print('-' * 30)
+    print('Enter command:', end='')
+    i = input()
+
+    if i == 'room-buzz-on':
+        event.set_buzz_event(configs['DB'], True)
+    elif i == 'room-buzz-off':
+        event.set_buzz_event(configs['DB'], False)
+    elif i == 'door-light-on':
+        event.set_led_event(configs['DL'], True)
+    elif i == 'door-light-off':
+        event.set_led_event(configs['DL'], False)
+    elif i == 'listen':
+        print_lock.release()
         try:
-            print_lock.release()
-        except:
-            pass
+            while True:
+                time.sleep(args.main_loop_sleep)
+        except KeyboardInterrupt:
+            print("Stopped listening...")
+    elif i == 'quit':
+        return True
+    else:
+        print("Unknown command")
+
+    return False
 
 
-def gui_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
+def console_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
+    done = False
+    while not done:
+        done = _console_app(event, configs, args, print_lock)
+
+
+def gui_app(event: MyPiEvent, configs: dict[str, SensorConfig]):
     from guizero import App, Text, PushButton
 
     def room_buzzer_on():
@@ -169,7 +168,9 @@ def app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lo
     match args.interface:
         case Interface.GUI:
             try:
-                gui_app(event, configs, args, print_lock)
+                gui_app(event, configs)
+            except KeyboardInterrupt as e:
+                raise e
             except:
                 print("Could not start GUI app. Fallback to console app...")
                 console_app(event, configs, args, print_lock)
@@ -219,7 +220,16 @@ def main():
 
     event = MyPiEvent()
     threading.Thread(target=event_thread, args=(event, print_lock), daemon=True).start()
-    app(event, configs, args, print_lock)
+    try:
+        app(event, configs, args, print_lock)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # FIXME: Is this necessary?
+        try:
+            print_lock.release()
+        except:
+            pass
 
 
 if __name__ == '__main__':
