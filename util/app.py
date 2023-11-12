@@ -1,7 +1,6 @@
-import threading
 import enum
 import time
-from util.common import MyPiEvent, SensorConfig
+from util.common import MyPiEvent, SensorConfig, PrintThread
 
 
 class AppType(enum.Enum):
@@ -12,18 +11,19 @@ class AppType(enum.Enum):
 class App:
     type: AppType
     configs: dict[str, SensorConfig]
-    print_lock: threading.Lock
+    print_thread: PrintThread
     event: MyPiEvent
 
 
     def __init__(self, type: AppType, configs: dict[str, SensorConfig]):
         self.type = type
         self.configs = configs
-        self.print_lock = threading.Lock()
+        self.print_thread = PrintThread()
         self.event = MyPiEvent()
 
 
     def run(self):
+        self.print_thread.start()
         from util.setup import setup_devices, start_event_thread
         setup_devices(self)
         start_event_thread(self)
@@ -54,16 +54,18 @@ class App:
     def console_app(self):
         done = False
         while not done:
-            done = self._console_app()
+            try:
+                done = self._console_app()
+            except EOFError:
+                # Triggered in CLI after starting listen command, then doing Ctrl+C twice to exit program.
+                # This happens without the event queue as well, probably something to do with daemon threads
+                # being blocked/holding onto locks. Is this considered a hack, or is it an acceptable response?
+                done = True
 
 
     def _console_app(self):
-        try:
-            self.print_lock.release()
-        except:
-            pass
+        self.print_thread.set_paused()
 
-        self.print_lock.acquire()
         print("\nSelect command")
         print('-' * 30)
         print("listen\t\t(Use keyboard interrupt to return to menu)")
@@ -85,7 +87,7 @@ class App:
         elif i == 'door-light-off':
             self.door_light_off()
         elif i == 'listen':
-            self.print_lock.release()
+            self.print_thread.set_unpaused()
             try:
                 while True:
                     time.sleep(1)
@@ -100,6 +102,7 @@ class App:
 
 
     def gui_app(self):
+        self.print_thread.set_unpaused()
         from guizero import App, PushButton
         app = App(title="my pi home gui")
         PushButton(app, text="Toggle buzzer on", command=self.room_buzzer_on)
@@ -126,10 +129,5 @@ class App:
 
 
     def cleanup(self):
-        try:
-            import setup
-            setup.cleanup_devices()
-            # FIXME: Is this necessary?
-            self.print_lock.release()
-        except:
-            pass
+        import util.setup
+        util.setup.cleanup_devices()

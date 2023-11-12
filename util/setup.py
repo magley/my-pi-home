@@ -14,30 +14,27 @@ def setup_devices(app: App):
         return threading.Thread(target=devs.run_reader, args=args, daemon=True).start()
 
     def pir_on_motion(config: SensorConfig):
-        with app.print_lock:
-            print(f"{time.strftime('%H:%M:%S', time.localtime())} {config.name} motion")
+        t = time.localtime()
+        app.print_thread.put((f"{time.strftime('%H:%M:%S', t)} {config.name} motion"))
 
     def mds_on_read(config: SensorConfig, val: int):
-        with app.print_lock:
-            print(f"{time.strftime('%H:%M:%S', time.localtime())} {config.name} {val}")
+        t = time.localtime()
+        app.print_thread.put(f"{time.strftime('%H:%M:%S', t)} {config.name} {val}")
     
     def dht_on_read(config: SensorConfig, reading: DHTReading):
         t = time.localtime()
-        with app.print_lock:
-            print(f"{time.strftime('%H:%M:%S', t)} {config.name} {reading.humidity}% {reading.temperature}°C")
+        app.print_thread.put(f"{time.strftime('%H:%M:%S', t)} {config.name} {reading.humidity}% {reading.temperature}°C")
 
     def uds_on_read(config: SensorConfig, reading: UDSReading):
         t = time.localtime()
-        with app.print_lock:
-            val = 'Timed out' if reading.code == UDSCode.TIMED_OUT else f"{reading.distance_in_cm}cm"
-            print(f"{time.strftime('%H:%M:%S', t)} {config.name} {val}")
+        val = 'Timed out' if reading.code == UDSCode.TIMED_OUT else f"{reading.distance_in_cm}cm"
+        app.print_thread.put(f"{time.strftime('%H:%M:%S', t)} {config.name} {val}")
 
     def mbkp_on_read(config: SensorConfig, val: str):
         t = time.localtime()
         if val == '':
             return
-        with app.print_lock:
-            print(f"{time.strftime('%H:%M:%S', t)} {config.name} Input: {val}")
+        app.print_thread.put(f"{time.strftime('%H:%M:%S', t)} {config.name} Input: {val}")
 
     GPIO.setmode(GPIO.BCM)
     for cfg in app.configs.values():
@@ -82,23 +79,19 @@ def _event_thread(app: App):
                 case MyPiEventType.BUZZ:
                     cfg = app.event.sensor
                     devs.buzzer_buzz(cfg)
-                    with app.print_lock:
-                        print(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Start buzzing")
+                    app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Start buzzing", ignore_paused=True)
                 case MyPiEventType.STOP_BUZZ:
                     cfg = app.event.sensor
                     devs.buzzer_stop_buzz(cfg)
-                    with app.print_lock:
-                        print(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Stop buzzing")
+                    app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Stop buzzing", ignore_paused=True)
                 case MyPiEventType.LED_ON:
                     cfg = app.event.sensor
                     devs.led_turn_on(cfg)
-                    with app.print_lock:
-                        print(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn on LED")
+                    app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn on LED", ignore_paused=True)
                 case MyPiEventType.LED_OFF:
                     cfg = app.event.sensor
                     devs.led_turn_off(cfg)
-                    with app.print_lock:
-                        print(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn off LED")
+                    app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn off LED", ignore_paused=True)
                 case _:
                     raise Exception('Unknown event type')
             app.event.consume()

@@ -1,7 +1,8 @@
 from enum import Enum, auto
-import threading
+from threading import Thread, Event
 import dataclasses
 import json
+from queue import Queue
 
 
 @dataclasses.dataclass
@@ -46,7 +47,7 @@ class MyPiEvent():
 
     def __init__(self):
         self.type: MyPiEventType = MyPiEventType.EMPTY
-        self.event = threading.Event()
+        self.event = Event()
         self.sensor: SensorConfig
 
 
@@ -82,3 +83,38 @@ class MyPiEvent():
 
     def wait(self):
         return self.event.wait()
+
+
+class PrintThread():
+    thread: Thread
+    queue: Queue
+    is_unpaused: Event
+
+    def __init__(self):
+        self.thread = Thread(target=self._print_thread, daemon=True)
+        self.queue = Queue()
+        self.is_unpaused = Event()
+
+
+    def start(self):
+        self.thread.start()
+
+
+    def _print_thread(self):
+        while True:
+            if self.is_unpaused.wait():
+                print(self.queue.get())
+
+
+    def put(self, item: str, ignore_paused = False):
+        # Ignore puts while we're not listening to stdout
+        if self.is_unpaused.is_set() or ignore_paused:
+            self.queue.put(item)
+
+
+    def set_paused(self):
+        self.is_unpaused.clear()
+
+
+    def set_unpaused(self):
+        self.is_unpaused.set()
