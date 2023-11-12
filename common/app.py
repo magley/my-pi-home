@@ -1,5 +1,7 @@
 import enum
-from util.common import MyPiEvent, SensorConfig, PrintThread
+from common.event import MyPiEvent
+from common.config import SensorConfig
+from common.print_thread import PrintThread
 
 
 class AppType(enum.Enum):
@@ -23,7 +25,7 @@ class App:
 
     def run(self):
         self.print_thread.start()
-        from util.setup import setup_devices, start_event_thread
+        from common.setup import setup_devices, start_event_thread
         setup_devices(self)
         start_event_thread(self)
         try:
@@ -69,5 +71,5 @@ class App:
 
 
     def cleanup(self):
-        import util.setup
-        util.setup.cleanup_devices()
+        import common.setup
+        common.setup.cleanup_devices()

@@ -1,11 +1,11 @@
-from util.app import App
+from common.app import App
 import threading
-from util.common import SensorConfig
+from common.config import SensorConfig
 import time
-import util.devices as devs
+import common.devices as devs
 from sensors.dht import DHTReading
 from sensors.uds import UDSReading, UDSCode
-from util.common import MyPiEventType
+from common.event import MyPiEventType
 import RPi.GPIO as GPIO
 
 

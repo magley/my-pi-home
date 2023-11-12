@@ -1,4 +1,4 @@
-from util.common import SensorConfig
+from common.config import SensorConfig
 from typing import TypeVar, Callable
 import time
 import actuators.buzzer as buzzer

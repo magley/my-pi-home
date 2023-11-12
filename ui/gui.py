@@ -1,5 +1,5 @@
 
-from util.app import App
+from common.app import App
 
 
 def gui_app(app: App):
