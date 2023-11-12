@@ -6,6 +6,7 @@ from config import SensorConfig
 import argparse
 import typing
 import RPi.GPIO as GPIO
+import enum
 from components import dht
 from components import pir
 from components import buzzer
@@ -16,17 +17,27 @@ from components import mbkp
 from sensors.dht import DHTReading
 from sensors.uds import UDSReading, UDSCode
 
+
+class Interface(enum.Enum):
+    GUI = enum.auto()
+    CLI = enum.auto()
+
+
 class Args(typing.NamedTuple):
     configs_path: str
     main_loop_sleep: int
-
+    interface: Interface
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--configs-path', default='data/configs.json')
     parser.add_argument('--main-loop-sleep', default=1, type=int)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--gui', action='store_const', dest='interface', const='gui', default='gui')
+    group.add_argument('--cli', action='store_const', dest='interface', const='cli')
     args = parser.parse_args()
-    return Args(args.configs_path, args.main_loop_sleep)
+    interface = Interface.CLI if args.interface == 'cli' else Interface.GUI
+    return Args(args.configs_path, args.main_loop_sleep, interface)
 
 
 def setup_devices(configs: dict[str, SensorConfig], print_lock: threading.Lock):
@@ -57,7 +68,7 @@ def setup_devices(configs: dict[str, SensorConfig], print_lock: threading.Lock):
         if val == '':
             return
         with print_lock:
-            print(f"{time.strftime('%H:%M:%S', t)} {config.name} {val}")
+            print(f"{time.strftime('%H:%M:%S', t)} {config.name} Input: {val}")
 
     for cfg in configs.values():
         match cfg.type:
@@ -130,36 +141,42 @@ def console_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, 
 
 
 def gui_app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
-    err = False
-    try:
-        from guizero import App, Text, PushButton
+    from guizero import App, Text, PushButton
 
-        def room_buzzer_on():
-            event.set_buzz_event(configs['DB'], True)
+    def room_buzzer_on():
+        event.set_buzz_event(configs['DB'], True)
 
-        def room_buzzer_off():
-            event.set_buzz_event(configs['DB'], False)
+    def room_buzzer_off():
+        event.set_buzz_event(configs['DB'], False)
 
-        def door_light_on():
-            event.set_led_event(configs['DL'], True)
+    def door_light_on():
+        event.set_led_event(configs['DL'], True)
 
-        def door_light_off():
-            event.set_led_event(configs['DL'], False)
+    def door_light_off():
+        event.set_led_event(configs['DL'], False)
 
 
-        app = App(title="my pi home gui")
-        PushButton(app, text="Toggle buzzer on", command=room_buzzer_on)
-        PushButton(app, text="Toggle buzzer off", command=room_buzzer_off)
-        PushButton(app, text="Door light on", command=door_light_on)
-        PushButton(app, text="Door light off", command=door_light_off)
+    app = App(title="my pi home gui")
+    PushButton(app, text="Toggle buzzer on", command=room_buzzer_on)
+    PushButton(app, text="Toggle buzzer off", command=room_buzzer_off)
+    PushButton(app, text="Door light on", command=door_light_on)
+    PushButton(app, text="Door light off", command=door_light_off)
 
-        app.display()
-    except Exception:
-        print("Could not start GUI app. Fallback to console app...")
-        err = True
+    app.display()
 
-    if err:
-        console_app(event, configs, args, print_lock)
+
+def app(event: MyPiEvent, configs: dict[str, SensorConfig], args: Args, print_lock: threading.Lock):
+    match args.interface:
+        case Interface.GUI:
+            try:
+                gui_app(event, configs, args, print_lock)
+            except:
+                print("Could not start GUI app. Fallback to console app...")
+                console_app(event, configs, args, print_lock)
+        case Interface.CLI:
+            console_app(event, configs, args, print_lock)
+        case _:
+            raise Exception('Unknown interface type')
 
 
 def event_thread(event: MyPiEvent, print_lock: threading.Lock):
@@ -202,7 +219,7 @@ def main():
 
     event = MyPiEvent()
     threading.Thread(target=event_thread, args=(event, print_lock), daemon=True).start()
-    gui_app(event, configs, args, print_lock)
+    app(event, configs, args, print_lock)
 
 
 if __name__ == '__main__':
