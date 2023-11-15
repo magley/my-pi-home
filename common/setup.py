@@ -50,27 +50,26 @@ def setup_devices(app: App):
     for cfg in app.configs.values():
         if len(available_colors) != 0:
             app.configs_colors[cfg.name] = available_colors.pop(rnd.randint(0, len(available_colors) - 1))
-        match cfg.type:
-            case 'dht':
+            if cfg.type == 'dht':
                 # dht doesn't have a setup because its reader alternates
                 # dht's pin between IN and OUT
                 make_reader(cfg, devs.dht_get_reader, dht_on_read)
-            case 'pir':
+            elif cfg.type == 'pir':
                 devs.pir_setup(cfg, pir_on_motion)
-            case 'buzzer':
+            elif cfg.type ==  'buzzer':
                 devs.buzzer_setup(cfg)
-            case 'mds':
+            elif cfg.type ==  'mds':
                 devs.mds_setup(cfg)
                 make_reader(cfg, devs.mds_get_reader, mds_on_read)
-            case 'led':
+            elif cfg.type ==  'led':
                 devs.led_setup(cfg)
-            case 'uds':
+            elif cfg.type ==  'uds':
                 devs.uds_setup(cfg)
                 make_reader(cfg, devs.uds_get_reader, uds_on_read)
-            case 'mbkp':
+            elif cfg.type ==  'mbkp':
                 devs.mbkp_setup(cfg)
                 make_reader(cfg, devs.mbkp_get_reader, mbkp_on_read)
-            case _:
+            else:
                 raise Exception('Unknown config type')
 
 
@@ -85,25 +84,24 @@ def start_event_thread(app: App):
 def _event_thread(app: App):
     while True:
         if app.event.wait():
-            match app.event.type:
-                case MyPiEventType.EMPTY:
-                    raise Exception('We should not see the EMPTY event.')
-                case MyPiEventType.BUZZ:
-                    cfg = app.event.sensor
-                    devs.buzzer_buzz(cfg)
-                    app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Start buzzing", app.configs_colors[cfg.name], True)
-                case MyPiEventType.STOP_BUZZ:
-                    cfg = app.event.sensor
-                    devs.buzzer_stop_buzz(cfg)
-                    app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Stop buzzing", app.configs_colors[cfg.name], True)
-                case MyPiEventType.LED_ON:
-                    cfg = app.event.sensor
-                    devs.led_turn_on(cfg)
-                    app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn on LED", app.configs_colors[cfg.name], True)
-                case MyPiEventType.LED_OFF:
-                    cfg = app.event.sensor
-                    devs.led_turn_off(cfg)
-                    app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn off LED", app.configs_colors[cfg.name], True)
-                case _:
-                    raise Exception('Unknown event type')
+            if app.event.type ==  MyPiEventType.EMPTY:
+                raise Exception('We should not see the EMPTY event.')
+            elif app.event.type ==  MyPiEventType.BUZZ:
+                cfg = app.event.sensor
+                devs.buzzer_buzz(cfg)
+                app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Start buzzing", app.configs_colors[cfg.name], True)
+            elif app.event.type ==  MyPiEventType.STOP_BUZZ:
+                cfg = app.event.sensor
+                devs.buzzer_stop_buzz(cfg)
+                app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Stop buzzing", app.configs_colors[cfg.name], True)
+            elif app.event.type ==  MyPiEventType.LED_ON:
+                cfg = app.event.sensor
+                devs.led_turn_on(cfg)
+                app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn on LED", app.configs_colors[cfg.name], True)
+            elif app.event.type ==  MyPiEventType.LED_OFF:
+                cfg = app.event.sensor
+                devs.led_turn_off(cfg)
+                app.print_thread.put(f"~~~ {time.strftime('%H:%M:%S', time.localtime())} {cfg.name} Turn off LED", app.configs_colors[cfg.name], True)
+            else:
+                raise Exception('Unknown event type')
             app.event.consume()

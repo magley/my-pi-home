@@ -41,20 +41,20 @@ class App:
     def _run(self):
         import ui.gui as gui
         import ui.cli as cli
-        match self.type:
-            case AppType.GUI:
-                try:
-                    gui.gui_app(self)
-                except KeyboardInterrupt as e:
-                    raise e
-                except:
-                    print("Could not start GUI app. Fallback to console app...")
-                    cli.console_app(self)
-            case AppType.CLI:
-                cli.console_app(self)
-            case _:
-                raise Exception('Unknown app type')
 
+        if self.type == AppType.GUI:
+            try:
+                gui.gui_app(self)
+            except KeyboardInterrupt as e:
+                raise e
+            except:
+                print("Could not start GUI app. Fallback to console app...")
+                cli.console_app(self)
+        elif self.type == AppType.CLI:
+            cli.console_app(self)
+        else:
+            raise Exception('Unknown app type')
+    
 
     def room_buzzer_on(self):
         self.event.set_buzz_event(self.configs['DB'], True)

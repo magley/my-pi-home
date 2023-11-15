@@ -27,26 +27,26 @@ def _console_app(app: App):
     print("door-light-off")
     print('-' * 30)
     print('Enter command:', end='')
-
-    match input():
-        case 'room-buzz-on':
-            app.room_buzzer_on()
-        case 'room-buzz-off':
-            app.room_buzzer_off()
-        case 'door-light-on':
-            app.door_light_on()
-        case 'door-light-off':
-            app.door_light_off()
-        case 'listen':
-            app.print_thread.set_unpaused()
-            try:
-                while True:
-                    time.sleep(1)
-            except KeyboardInterrupt:
-                print("Stopped listening...")
-        case 'quit':
-            return True
-        case _:
-            print("Unknown command")
+    
+    i = input()
+    if i ==  'room-buzz-on':
+        app.room_buzzer_on()
+    elif i ==  'room-buzz-off':
+        app.room_buzzer_off()
+    elif i ==  'door-light-on':
+        app.door_light_on()
+    elif i ==  'door-light-off':
+        app.door_light_off()
+    elif i ==  'listen':
+        app.print_thread.set_unpaused()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("Stopped listening...")
+    elif i ==  'quit':
+        return True
+    else:
+        print("Unknown command")
 
     return False
