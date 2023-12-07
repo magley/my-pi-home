@@ -1,6 +1,6 @@
 import enum
 from common.event import MyPiEvent
-from common.config import SensorConfig
+from common.config import Config
 from common.print_thread import PrintThread
 
 
@@ -11,15 +11,15 @@ class AppType(enum.Enum):
 
 class App:
     type: AppType
-    configs: dict[str, SensorConfig]
+    config: Config
     configs_colors: dict[str, str]
     print_thread: PrintThread
     event: MyPiEvent
 
 
-    def __init__(self, type: AppType, configs: dict[str, SensorConfig]):
+    def __init__(self, type: AppType, config: Config):
         self.type = type
-        self.configs = configs
+        self.config = config
         self.configs_colors = {}
         self.print_thread = PrintThread()
         self.event = MyPiEvent()
@@ -47,7 +47,7 @@ class App:
                 gui.gui_app(self)
             except KeyboardInterrupt as e:
                 raise e
-            except:
+            except Exception:
                 print("Could not start GUI app. Fallback to console app...")
                 cli.console_app(self)
         elif self.type == AppType.CLI:
@@ -57,19 +57,19 @@ class App:
     
 
     def room_buzzer_on(self):
-        self.event.set_buzz_event(self.configs['DB'], True)
+        self.event.set_buzz_event(self.config.devices['DB'], True)
 
 
     def room_buzzer_off(self):
-        self.event.set_buzz_event(self.configs['DB'], False)
+        self.event.set_buzz_event(self.config.devices['DB'], False)
 
 
     def door_light_on(self):
-        self.event.set_led_event(self.configs['DL'], True)
+        self.event.set_led_event(self.config.devices['DL'], True)
 
 
     def door_light_off(self):
-        self.event.set_led_event(self.configs['DL'], False)
+        self.event.set_led_event(self.config.devices['DL'], False)
 
 
     def cleanup(self):

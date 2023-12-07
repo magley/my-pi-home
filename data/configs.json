@@ -1,72 +1,97 @@
-[
-    {
-        "name": "RDHT1",
-        "type": "dht",
-        "pins": [17],
-        "simulated": true,
-        "read_interval": 2.5
+{
+    "mqtt": {
+        "host": "127.0.0.1",
+        "port": "1883",
+        "topics": {
+            "dht": "",
+            "pir": "",
+            "buzzer": "",
+            "mds": "",
+            "led": "",
+            "uds": "",
+            "mbkp": ""
+        }
     },
-    {
-        "name": "RDHT2",
-        "type": "dht",
-        "pins": [27],
-        "simulated": true,
-        "read_interval": 2.4
-    },
-    {
-        "name": "RPIR1",
-        "type": "pir",
-        "pins": [22],
-        "simulated": true,
-        "read_interval": 1.0
-    },
-    {
-        "name": "RPIR2",
-        "type": "pir",
-        "pins": [10],
-        "simulated": true,
-        "read_interval": 2.0
-    },
-    {
-        "name": "DB",
-        "type": "buzzer",
-        "pins": [9],
-        "simulated": true,
-        "read_interval": 1.0
-    },
-    {
-        "name": "DPIR1",
-        "type": "pir",
-        "pins": [11],
-        "simulated": true,
-        "read_interval": 3.0
-    },
-    {
-        "name": "DS1",
-        "type": "mds",
-        "pins": [0],
-        "simulated": true,
-        "read_interval": 0.5
-    },
-    {
-        "name": "DL",
-        "type": "led",
-        "pins": [5],
-        "simulated": true,
-        "read_interval": 1.5
-    },
-    {
-        "name": "DUS1",
-        "type": "uds",
-        "pins": [23, 24],
-        "simulated": true,
-        "read_interval": 1
-    },
-    {
-        "name": "DMS",
-        "type": "mbkp",
-        "pins": [25, 8, 7, 1, 12, 16, 20, 21],
-        "simulated": true,
-        "read_interval": 0.1
-    }
-]
+    "devices": [
+        {
+            "name": "RDHT1",
+            "type": "dht",
+            "pins": [17],
+            "simulated": true,
+            "read_interval": 2.5,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "RDHT2",
+            "type": "dht",
+            "pins": [27],
+            "simulated": true,
+            "read_interval": 2.4,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "RPIR1",
+            "type": "pir",
+            "pins": [22],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "RPIR2",
+            "type": "pir",
+            "pins": [10],
+            "simulated": true,
+            "read_interval": 2.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DB",
+            "type": "buzzer",
+            "pins": [9],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DPIR1",
+            "type": "pir",
+            "pins": [11],
+            "simulated": true,
+            "read_interval": 3.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DS1",
+            "type": "mds",
+            "pins": [0],
+            "simulated": true,
+            "read_interval": 0.5,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DL",
+            "type": "led",
+            "pins": [5],
+            "simulated": true,
+            "read_interval": 1.5,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DUS1",
+            "type": "uds",
+            "pins": [23, 24],
+            "simulated": true,
+            "read_interval": 1,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DMS",
+            "type": "mbkp",
+            "pins": [25, 8, 7, 1, 12, 16, 20, 21],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        }
+    ]
+}
