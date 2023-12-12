@@ -1,6 +1,5 @@
 from enum import Enum, auto
 from threading import Event
-from common.config import DeviceConfig
 
 
 class MyPiEventType(Enum):
@@ -27,7 +26,7 @@ class MyPiEvent():
 
     def __init__(self):
         self.type: MyPiEventType = MyPiEventType.EMPTY
-        self.cfg: DeviceConfig
+        self.cfg = {} # Configuration for the device whose event is being fired.
         self.event = Event()
 
 
@@ -41,13 +40,13 @@ class MyPiEvent():
         self.event.set()
 
 
-    def set_buzz_event(self, cfg: DeviceConfig, do_buzz: bool):
+    def set_buzz_event(self, cfg: dict, do_buzz: bool):
         self.type = MyPiEventType.BUZZ if do_buzz else MyPiEventType.STOP_BUZZ
         self.cfg = cfg
         self.event.set()
 
 
-    def set_led_event(self, cfg: DeviceConfig, turn_on: bool):
+    def set_led_event(self, cfg: dict, turn_on: bool):
         self.type = MyPiEventType.LED_ON if turn_on else MyPiEventType.LED_OFF
         self.cfg = cfg
         self.event.set()
