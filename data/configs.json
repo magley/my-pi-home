@@ -1,16 +1,7 @@
 {
     "mqtt": {
         "host": "127.0.0.1",
-        "port": "1883",
-        "topics": {
-            "dht": "",
-            "pir": "",
-            "buzzer": "",
-            "mds": "",
-            "led": "",
-            "uds": "",
-            "mbkp": ""
-        }
+        "port": 1883
     },
     "devices": [
         {
