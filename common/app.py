@@ -169,7 +169,7 @@ class App:
                 # https://docs.python.org/3/faq/programming.html#why-do-lambdas-defined-in-a-loop-with-different-values-all-return-the-same-result
                 # Can't do `lambda: self.invoke_read_funcs(device_cfg, {})`
                 # because lambda closures do not capture by default.
-                pir.setup(device_cfg['pins'][0], device_cfg['simulated'], lambda cfg=device_cfg: self.invoke_read_funcs(cfg, {}))
+                pir.setup(device_cfg['pins'][0], device_cfg['simulated'], lambda cfg=device_cfg: self.invoke_read_funcs(cfg, pir._reading()))
             elif device_cfg['type'] == 'buzzer':
                 buzzer.setup(pin)
             elif device_cfg['type'] == 'mds':

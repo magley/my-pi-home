@@ -1,6 +1,24 @@
 import random
 import RPi.GPIO as GPIO
 import time
+from common.mqtt import MqttSender, build_payload
+
+
+class DHT_Mqtt(MqttSender):
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.topic = "iot/dht"
+
+
+    def put(self, cfg: dict, data: dict):
+        if cfg['type'] != 'dht':
+            return
+
+        temperature_payload = build_payload(cfg, data, "temperature")
+        self.do_put(temperature_payload)
+
+        humidity_payload = build_payload(cfg, data, "humidity")
+        self.do_put(humidity_payload)
 
 
 def get_reader_func(cfg: dict):

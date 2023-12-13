@@ -5,12 +5,33 @@ import threading
 import time
 
 
+from common.mqtt import MqttSender, build_payload
+
+
+class PIR_Mqtt(MqttSender):
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.topic = "iot/pir"
+
+
+    def put(self, cfg: dict, data: dict):
+        if cfg['type'] != 'pir':
+            return
+        
+        payload = build_payload(cfg, data, "motion")
+        self.do_put(payload)
+
+
 '''
 PIR doesn't have a loop, it uses callbacks to respond to motion.
 
 When simulated, it starts a daemon thread firing a motion callback.
 When real device, it adds an event callback.
 '''
+
+
+def _reading():
+    return { "motion": True }
 
 
 def setup(pin: int, simulated: bool, on_motion_callback: typing.Callable):

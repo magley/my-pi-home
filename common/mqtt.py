@@ -85,23 +85,6 @@ class MqttSender:
             self.pub_event.clear()
 
 
-class DHT_Mqtt(MqttSender):
-    def __init__(self, config: dict):
-        super().__init__(config)
-        self.topic = "iot/dht"
-
-
-    def put(self, cfg: dict, data: dict):
-        if cfg['type'] != 'dht':
-            return
-
-        temperature_payload = build_payload(cfg, data, "temperature")
-        self.do_put(temperature_payload)
-
-        humidity_payload = build_payload(cfg, data, "humidity")
-        self.do_put(humidity_payload)
-
-
 def build_payload(cfg: dict, data: dict, field: str):
     """
     Given the device config, the last reading and the name of the field of interest,
