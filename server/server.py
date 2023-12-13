@@ -9,8 +9,6 @@ import paho.mqtt.client as mqtt
 app = Flask(__name__)
 cfg = config.load_config("config.json", "influx_token.secret")
 
-data = []
-
 # Influx
 influx = InfluxDBClient(url=cfg['influxdb']['url'], token=cfg['influxdb']['token'], org=cfg['influxdb']['org'])
 
@@ -20,7 +18,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("iot/dht")
 
 def on_message(client, userdata, msg):
-    data.append(msg.topic + " " + str(msg.payload))
+    save_to_db(json.loads(msg.payload.decode('utf-8')))
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -28,10 +26,23 @@ client.on_message = on_message
 client.connect(cfg['mqtt']['host'], cfg['mqtt']['port'], 60)
 client.loop_start()
 
+# DB
+def save_to_db(item: list[dict]):
+    write_api = influx.write_api(write_options=SYNCHRONOUS)
+    point = (
+        Point(item["measurement"])
+            .tag("simulated", item["simulated"])
+            .tag("runs_on", item["runs_on"])
+            .tag("name", item["name"])
+            .field("measurement", item["value"])
+    )
+
+    write_api.write(bucket=cfg['influxdb']['bucket'], org=cfg['influxdb']['org'], record=point)
+
 
 @app.route('/')
 def hello():
-    return json.dumps(data)
+    return ""
 
 
 if __name__ == '__main__':

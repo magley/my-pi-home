@@ -95,20 +95,32 @@ class DHT_Mqtt(MqttSender):
         if cfg['type'] != 'dht':
             return
 
-        temperature_payload = {
-            "measurement": "tempeprature",
-            "simulated": cfg["simulated"],
-            "run_on": cfg["runs_on"],
-            "name": cfg["name"],
-            "value": data['temperature']
-        }
+        temperature_payload = build_payload(cfg, data, "temperature")
         self.do_put(temperature_payload)
 
-        humidity_payload = {
-            "measurement": "humidity",
-            "simulated": cfg["simulated"],
-            "run_on": cfg["runs_on"],
-            "name": cfg["name"],
-            "value": data['humidity']
-        }
+        humidity_payload = build_payload(cfg, data, "humidity")
         self.do_put(humidity_payload)
+
+
+def build_payload(cfg: dict, data: dict, field: str):
+    """
+    Given the device config, the last reading and the name of the field of interest,
+    create a dictionary suitable for sending to MQTT (and storing in influxdb):
+    ```
+    {
+        "measurement": field,
+        "simulated": cfg["simulated"],
+        "runs_on": cfg["runs_on"],
+        "name": cfg["name"],
+        "value": data[field] 
+    } 
+    ```
+    """
+    
+    return {
+        "measurement": field,
+        "simulated": cfg["simulated"],
+        "runs_on": cfg["runs_on"],
+        "name": cfg["name"],
+        "value": data[field]
+    }
