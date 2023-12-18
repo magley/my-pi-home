@@ -18,6 +18,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("iot/dht")
     client.subscribe("iot/pir")
     client.subscribe("iot/uds")
+    client.subscribe("iot/mds")
 
 def on_message(client, userdata, msg):
     save_to_db(json.loads(msg.payload.decode('utf-8')))

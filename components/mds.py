@@ -1,5 +1,20 @@
 import RPi.GPIO as GPIO
 import random
+from common.mqtt import MqttSender, build_payload
+
+
+class MDS_Mqtt(MqttSender):
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.topic = "iot/mds"
+
+
+    def put(self, cfg: dict, data: dict):
+        if cfg['type'] != 'mds':
+            return
+
+        open_payload = build_payload(cfg, data, "open")
+        self.do_put(open_payload)
 
 
 def get_reader_func(cfg: dict):
