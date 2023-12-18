@@ -6,6 +6,7 @@ from components.dht import DHT_Mqtt
 from components.pir import PIR_Mqtt
 from components.uds import UDS_Mqtt
 from components.mds import MDS_Mqtt
+from components.mbkp import MBKP_Mqtt
 
 
 class Args(typing.NamedTuple):
@@ -33,10 +34,11 @@ def main():
     pir_mqtt = PIR_Mqtt(configs)
     uds_mqtt = UDS_Mqtt(configs)
     mds_mqtt = MDS_Mqtt(configs)
+    mbkp_mqtt = MBKP_Mqtt(configs)
     app.add_on_read_func(dht_mqtt.put)
     app.add_on_read_func(pir_mqtt.put)
     app.add_on_read_func(uds_mqtt.put)
-    app.add_on_read_func(mds_mqtt.put)
+    app.add_on_read_func(mbkp_mqtt.put)
     app.run()
 
 if __name__ == '__main__':

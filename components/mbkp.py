@@ -1,5 +1,20 @@
 import random
 import RPi.GPIO as GPIO
+from common.mqtt import MqttSender, build_payload
+
+
+class MBKP_Mqtt(MqttSender):
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.topic = "iot/mbkp"
+
+
+    def put(self, cfg: dict, data: dict):
+        if cfg['type'] != 'mbkp':
+            return
+
+        open_payload = build_payload(cfg, data, "keys")
+        self.do_put(open_payload)
 
 
 def get_reader_func(cfg: dict):
