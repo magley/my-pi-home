@@ -1,0 +1,12 @@
+{
+    "mqtt": {
+        "host": "127.0.0.1",
+        "port": 1883
+    },
+    "influxdb": {
+        "url": "http://127.0.0.1:8086",
+        "org": "nvt",
+        "bucket": "iotBucket",
+        "token": "Load from 'influx_token.secret'"
+    }
+}
