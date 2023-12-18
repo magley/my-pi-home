@@ -24,6 +24,7 @@ class App:
         self.print_thread = PrintThread()
         self.event = MyPiEvent()
         self._on_read_funcs = []
+        self._on_event_funcs = {}
 
         self.add_on_read_func(self._log_read)
 
@@ -69,6 +70,20 @@ class App:
         """
 
         self._on_read_funcs.append(f)
+    
+
+    def add_on_event_func(self, type: str, f: typing.Callable):
+        """
+        Desc
+        ---
+
+        Add a function `f(device_cfg: dict, data: dict, event: str) -> None` to a list of
+        functions that get called when the actuator of specified type has an event triggered.
+        """
+        if not self._on_event_funcs.get(type):
+            self._on_event_funcs[type] = [f]
+        else:    
+            self._on_event_funcs[type].append(f)
 
 
     def run(self):
@@ -100,12 +115,16 @@ class App:
                         raise Exception('We should not see the EMPTY event.')
                     if type == MyPiEventType.BUZZ:
                         buzzer.get_do_buzz(cfg)()
+                        self.invoke_event_funcs(cfg, {"buzz": 1}, "buzz")
                     elif type == MyPiEventType.STOP_BUZZ:
                         buzzer.get_stop_buzz(cfg)()
+                        self.invoke_event_funcs(cfg, {"buzz": 0}, "buzz")
                     elif type == MyPiEventType.LED_ON:
                         led.get_turn_on(cfg)()
+                        self.invoke_event_funcs(cfg, {"switch": 1}, "switch")
                     elif type == MyPiEventType.LED_OFF:
                         led.get_turn_off(cfg)()
+                        self.invoke_event_funcs(cfg, {"switch": 0}, "switch")
                     else:
                         raise Exception(f'Unsupported Event type: {type}')
                     
@@ -187,6 +206,11 @@ class App:
     def invoke_read_funcs(self, device_cfg: dict, reading: dict):
         for func in self._on_read_funcs:
             func(device_cfg, reading)
+
+
+    def invoke_event_funcs(self, device_cfg: dict, data: dict, event: str):
+        for func in self._on_event_funcs[device_cfg['type']]:
+            func(device_cfg, data, event)
 
 
     def start_device_runners(self):

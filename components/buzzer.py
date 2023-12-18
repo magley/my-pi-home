@@ -1,4 +1,20 @@
 from RPi import GPIO
+from common.mqtt import MqttSender, build_payload
+
+
+class Buzzer_Mqtt(MqttSender):
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.topic = "iot/buzzer"
+
+
+    # Actuactor can have multiple events, so pass the event as well
+    def put(self, cfg: dict, data: dict, event: str):
+        if cfg['type'] != 'buzzer':
+            return
+
+        buzz_payload = build_payload(cfg, data, event)
+        self.do_put(buzz_payload)
 
 
 def get_do_buzz(cfg: dict):
