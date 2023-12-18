@@ -121,8 +121,10 @@ class App:
                         self.invoke_event_funcs(cfg, {"buzz": 0}, "buzz")
                     elif type == MyPiEventType.LED_ON:
                         led.get_turn_on(cfg)()
+                        self.invoke_event_funcs(cfg, {"switch": 1}, "switch")
                     elif type == MyPiEventType.LED_OFF:
                         led.get_turn_off(cfg)()
+                        self.invoke_event_funcs(cfg, {"switch": 0}, "switch")
                     else:
                         raise Exception(f'Unsupported Event type: {type}')
                     

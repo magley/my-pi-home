@@ -1,4 +1,20 @@
 from RPi import GPIO
+from common.mqtt import MqttSender, build_payload
+
+
+class LED_Mqtt(MqttSender):
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.topic = "iot/led"
+
+
+    # Actuactor can have multiple events, so pass the event as well
+    def put(self, cfg: dict, data: dict, event: str):
+        if cfg['type'] != 'led':
+            return
+
+        buzz_payload = build_payload(cfg, data, event)
+        self.do_put(buzz_payload)
 
 
 def get_turn_on(cfg: dict):
