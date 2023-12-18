@@ -37,16 +37,16 @@ def read_sim():
 
 
 def read_real(output_pins, input_pins):
-    def _read_row(row: int, input_pins: list[int]):
-        GPIO.output(row.pin, GPIO.HIGH)
+    def _read_row(row: int, row_output_pin: int, input_pins: list[int]):
+        GPIO.output(row_output_pin, GPIO.HIGH)
         res = []
         for idx, pin in enumerate(input_pins):
             if GPIO.input(pin) == 1:
-                res.append(KEYPAD_CHARS[row.idx][idx])
-        GPIO.output(row.pin, GPIO.LOW)
+                res.append(KEYPAD_CHARS[row][idx])
+        GPIO.output(row_output_pin, GPIO.LOW)
         return ''.join(res)
     
     res = ''
     for idx, r in enumerate(output_pins):
-        res += _read_row(idx, input_pins)
+        res += _read_row(idx, r, input_pins)
     return _reading(res)
