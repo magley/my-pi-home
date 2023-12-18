@@ -4,6 +4,7 @@ import typing
 from common.app import AppType, App
 from components.dht import DHT_Mqtt
 from components.pir import PIR_Mqtt
+from components.uds import UDS_Mqtt
 
 
 class Args(typing.NamedTuple):
@@ -29,8 +30,10 @@ def main():
 
     dht_mqtt = DHT_Mqtt(configs)
     pir_mqtt = PIR_Mqtt(configs)
+    uds_mqtt = UDS_Mqtt(configs)
     app.add_on_read_func(dht_mqtt.put)
     app.add_on_read_func(pir_mqtt.put)
+    app.add_on_read_func(uds_mqtt.put)
     app.run()
 
 if __name__ == '__main__':

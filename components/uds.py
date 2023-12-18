@@ -1,6 +1,24 @@
 import random
 import RPi.GPIO as GPIO
 import time
+from common.mqtt import MqttSender, build_payload
+
+
+class UDS_Mqtt(MqttSender):
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.topic = "iot/uds"
+
+
+    def put(self, cfg: dict, data: dict):
+        if cfg['type'] != 'uds':
+            return
+
+        distance_payload = build_payload(cfg, data, "distance_in_cm")
+        self.do_put(distance_payload)
+
+        code_payload = build_payload(cfg, data, "code")
+        self.do_put(code_payload)
 
 
 def get_reader_func(cfg: dict):
