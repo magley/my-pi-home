@@ -6,7 +6,6 @@ import threading
 class MqttSender:
     def __init__(self, config: dict):
         self.batch = []
-        self.counter = 0
         self.limit = 5
         self.config = config
         self.counter_lock = threading.Lock()
@@ -54,9 +53,8 @@ class MqttSender:
         mqtt_msg = (self.topic, json.dumps(payload), 0, True) # Topic, payload, QOS, Retained
         with self.counter_lock:
             self.batch.append(mqtt_msg)
-            self.counter += 1
 
-        if self.counter >= self.limit:
+        if len(self.batch) >= self.limit:
             self.on_flush()
 
 
@@ -73,7 +71,6 @@ class MqttSender:
             local_batch = []
             with self.counter_lock:
                 local_batch = self.batch.copy()
-                self.counter = 0
                 self.batch.clear()
 
             publish.multiple(
