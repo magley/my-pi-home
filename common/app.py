@@ -12,13 +12,14 @@ from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd
 
 
 class App:
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, pi_id: int):
         self.config = config
         self.configs_colors = {}
         self.print_thread = PrintThread()
         self.event = MyPiEvent()
         self._on_read_funcs = []
         self._on_event_funcs = {}
+        self.pi_id = pi_id
 
         self.add_on_read_func(self._log_read)
 
@@ -169,6 +170,9 @@ class App:
         GPIO.setmode(GPIO.BCM)
 
         for device_cfg in self.config['devices']:
+            if device_cfg['runs_on'] != f'PI{self.pi_id}':
+                continue
+
             pin = device_cfg['pins'][0]
             
             if device_cfg['type'] == 'dht':
@@ -221,6 +225,9 @@ class App:
 
 
         for device_cfg in self.config['devices']:
+            if device_cfg['runs_on'] != f'PI{self.pi_id}':
+                continue
+    
             if device_cfg['type'] == 'dht':
                 start_reader(device_cfg, dht.get_reader_func)
             elif device_cfg['type'] == 'pir':

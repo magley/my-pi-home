@@ -14,19 +14,21 @@ from components.led import LED_Mqtt
 
 class Args(typing.NamedTuple):
     configs_path: str
+    pi: int
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--configs-path', default='data/configs.json')
+    parser.add_argument('--pi', default=1)
     args = parser.parse_args()
-    return Args(args.configs_path)
+    return Args(args.configs_path, args.pi)
 
 
 def main():
     args = parse_args()
     configs = load_configs(args.configs_path)
-    app = App(configs)
+    app = App(configs, args.pi)
 
     dht_mqtt = DHT_Mqtt(configs)
     pir_mqtt = PIR_Mqtt(configs)
