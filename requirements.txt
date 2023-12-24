@@ -1,4 +1,3 @@
-guizero
 paho-mqtt
 flask
 influxdb_client

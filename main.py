@@ -3,6 +3,7 @@ import argparse
 import typing
 from common.app import AppType, App
 from components.dht import DHT_Mqtt
+from components.lcd import LCD_Mqtt
 from components.pir import PIR_Mqtt
 from components.uds import UDS_Mqtt
 from components.mds import MDS_Mqtt
@@ -20,8 +21,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--configs-path', default='data/configs.json')
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--gui', action='store_const', dest='app_type', const='gui', default='gui')
-    group.add_argument('--cli', action='store_const', dest='app_type', const='cli')
+    group.add_argument('--gui', action='store_const', dest='app_type', const='gui')
+    group.add_argument('--cli', action='store_const', dest='app_type', const='cli', default='cli')
     args = parser.parse_args()
     app_type = AppType.CLI if args.app_type == 'cli' else AppType.GUI
     return Args(args.configs_path, app_type)
@@ -39,6 +40,7 @@ def main():
     mbkp_mqtt = MBKP_Mqtt(configs)
     buzzer_mqtt = Buzzer_Mqtt(configs)
     led_mqtt = LED_Mqtt(configs)
+    lcd_mqtt = LCD_Mqtt(configs)
 
     app.add_on_read_func(dht_mqtt.put)
     app.add_on_read_func(pir_mqtt.put)
@@ -47,6 +49,7 @@ def main():
     app.add_on_read_func(mbkp_mqtt.put)
     app.add_on_event_func('buzzer', buzzer_mqtt.put)
     app.add_on_event_func('led', led_mqtt.put)
+    app.add_on_event_func('lcd', lcd_mqtt.put)
     app.run()
 
 if __name__ == '__main__':
