@@ -11,14 +11,8 @@ import common.colorizer as colorizer
 from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd
 
 
-class AppType(enum.Enum):
-    GUI = enum.auto()
-    CLI = enum.auto()
-
-
 class App:
-    def __init__(self, type: AppType, config: dict):
-        self.type = type
+    def __init__(self, config: dict):
         self.config = config
         self.configs_colors = {}
         self.print_thread = PrintThread()
@@ -140,22 +134,9 @@ class App:
 
 
     def _run(self):
-        import ui.gui as gui
         import ui.cli as cli
+        cli.console_app(self)
 
-        if self.type == AppType.GUI:
-            try:
-                gui.gui_app(self)
-            except KeyboardInterrupt as e:
-                raise e
-            except Exception:
-                print("Could not start GUI app. Fallback to console app...")
-                cli.console_app(self)
-        elif self.type == AppType.CLI:
-            cli.console_app(self)
-        else:
-            raise Exception('Unknown app type')
-        
 
     def get_device_by_code(self, code: str) -> dict:
         for cfg in self.config['devices']:
