@@ -39,6 +39,7 @@ class App:
 
         self.print_thread.put(ss, col)
 
+
     def _log_event(self, device_cfg: dict, type: MyPiEventType, payload):
         t = time.localtime()
         tstr = time.strftime("%H:%M:%S", t)

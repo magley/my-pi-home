@@ -10,6 +10,7 @@ from components.mds import MDS_Mqtt
 from components.mbkp import MBKP_Mqtt
 from components.buzzer import Buzzer_Mqtt
 from components.led import LED_Mqtt
+from common.app_logic import read_GDHT_to_GLCD
 
 
 class Args(typing.NamedTuple):
@@ -47,6 +48,8 @@ def main():
     app.add_on_event_func('buzzer', buzzer_mqtt.put)
     app.add_on_event_func('led', led_mqtt.put)
     app.add_on_event_func('lcd', lcd_mqtt.put)
+
+    app.add_on_read_func(read_GDHT_to_GLCD(app))
     app.run()
 
 if __name__ == '__main__':
