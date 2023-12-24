@@ -8,7 +8,7 @@ import RPi.GPIO as GPIO
 import common.colorizer as colorizer
 
 
-from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd
+from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd, gyro
 
 
 class App:
@@ -194,9 +194,9 @@ class App:
             elif device_cfg['type'] == 'mbkp':
                 mbkp.setup(device_cfg['pins'][:4], device_cfg['pins'][4:])
             elif device_cfg['type'] == 'lcd':
-                lcd.setup() # TODO: Pins
+                lcd.setup() # TODO: Pins?
             elif device_cfg['type'] == 'gyro':
-                pass
+                gyro.setup() # TODO: Pins?
             else:
                 raise Exception(f'Could not setup device for type {device_cfg["type"]}.\nDid you forget to include an else-if?')
 
@@ -246,6 +246,6 @@ class App:
             elif device_cfg['type'] == 'lcd':
                 pass # Actuator doesn't have a reader.
             elif device_cfg['type'] == 'gyro':
-                pass
+                start_reader(device_cfg, gyro.get_reader_func)
             else:
                 raise Exception(f'Could not start device runner for type {device_cfg["type"]}.\nDid you forget to include an else-if?')

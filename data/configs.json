@@ -135,7 +135,7 @@
         {
             "name": "GSG",
             "type": "gyro",
-            "pins": [-1, -1, -1, -1, -1],
+            "pins": [2, 3],
             "simulated": true,
             "read_interval": 1.0,
             "runs_on": "PI2" 

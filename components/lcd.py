@@ -35,10 +35,10 @@ def setup():
         mcp: PCF8574_GPIO
         try:
             mcp = PCF8574_GPIO(PCF8574_address)
-        except:
+        except Exception:
             try:
                 mcp = PCF8574_GPIO(PCF8574A_address)
-            except:
+            except Exception:
                 print ('I2C Address Error !')
                 exit(1)
         return mcp

@@ -23,6 +23,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("iot/buzzer")
     client.subscribe("iot/led")
     client.subscribe("iot/lcd")
+    client.subscribe("iot/gyro")
 
 def on_message(client, userdata, msg):
     save_to_db(json.loads(msg.payload.decode('utf-8')))
@@ -35,16 +36,19 @@ client.loop_start()
 
 # DB
 def save_to_db(item: dict):
-    write_api = influx.write_api(write_options=SYNCHRONOUS)
-    point = (
-        Point(item["measurement"])
-            .tag("simulated", item["simulated"])
-            .tag("runs_on", item["runs_on"])
-            .tag("name", item["name"])
-            .field("measurement", item["value"])
-    )
+    try:
+        write_api = influx.write_api(write_options=SYNCHRONOUS)
+        point = (
+            Point(item["measurement"])
+                .tag("simulated", item["simulated"])
+                .tag("runs_on", item["runs_on"])
+                .tag("name", item["name"])
+                .field("measurement", item["value"])
+        )
 
-    write_api.write(bucket=cfg['influxdb']['bucket'], org=cfg['influxdb']['org'], record=point)
+        write_api.write(bucket=cfg['influxdb']['bucket'], org=cfg['influxdb']['org'], record=point)
+    except Exception:
+        print("Error")
 
 
 @app.route('/')
