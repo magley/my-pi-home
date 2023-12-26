@@ -37,7 +37,7 @@ def setup(pin_trig: int, pin_echo: int):
 
 
 def read_sim():
-    return _reading(random.randint(25, 30), 0)
+    return _reading(20 + random.random() * 10, 0)
 
 
 WAKEUP_DELAY = 0.2

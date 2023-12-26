@@ -19,6 +19,8 @@ class App:
         self._on_read_funcs = []
         self._on_event_funcs = {}
         self.pi_id = pi_id
+        self.userdata = {}
+        self.userdata_lock = threading.Lock()
 
         self.add_on_read_func(self._log_read)
 

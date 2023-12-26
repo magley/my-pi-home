@@ -1,3 +1,4 @@
 paho-mqtt
 flask
 influxdb_client
+requests
