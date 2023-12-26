@@ -1,4 +1,3 @@
-import enum
 import threading
 import time
 import typing

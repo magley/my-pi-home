@@ -11,7 +11,7 @@ from components.mbkp import MBKP_Mqtt
 from components.buzzer import Buzzer_Mqtt
 from components.led import LED_Mqtt
 from components.gyro import Gyro_Mqtt
-from common.app_logic import read_GDHT_to_GLCD
+from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s
 
 
 class Args(typing.NamedTuple):
@@ -53,6 +53,7 @@ def main():
     app.add_on_event_func('lcd', lcd_mqtt.put)
 
     app.add_on_read_func(read_GDHT_to_GLCD(app))
+    app.add_on_read_func(on_DPIR_movement_turn_on_DL_for10s(app))
     app.run()
 
 if __name__ == '__main__':
