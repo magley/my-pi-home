@@ -54,7 +54,7 @@ class App:
         col_index = types.index(device_cfg["type"])
         col = available_colors[col_index]
 
-        self.print_thread.put(ss, col, True)
+        self.print_thread.put(ss, col)
 
 
     def add_on_read_func(self, f: typing.Callable):
@@ -126,6 +126,9 @@ class App:
                     elif type == MyPiEventType.LCD_WRITE:
                         lcd.get_set_text(cfg)(payload)
                         self.invoke_event_funcs(cfg, {"lcd": payload}, "lcd")
+                    elif type == MyPiEventType.DEBUG_GSG_SHAKE:
+                        gyro.debug_shake()
+                        self.invoke_event_funcs(cfg, {"gyro": payload}, "gyro")
                     else:
                         raise Exception(f'Unimplemented Event type: {type}')
                     
@@ -166,6 +169,10 @@ class App:
 
     def lcd_write_text(self, text: str):
         self.event.set_lcd_event(self.get_device_by_code('GLCD'), text)
+
+
+    def gsg_debug_shake(self):
+        self.event.set_debug_gsg_shake_event(self.get_device_by_code('GSG'))
 
 
     def setup_devices(self):

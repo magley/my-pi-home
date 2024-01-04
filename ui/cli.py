@@ -26,6 +26,7 @@ def _console_app(app: App):
     print("door-light-on")
     print("door-light-off")
     print("lcd-write")
+    print('debug-gsg-shake')
     print('-' * 30)
     print('Enter command:', end='')
     
@@ -41,6 +42,8 @@ def _console_app(app: App):
     elif i == 'lcd-write':
         s = input("Enter text:")
         app.lcd_write_text(s)
+    elif i == 'debug-gsg-shake':
+        app.gsg_debug_shake()
     elif i ==  'listen':
         app.print_thread.set_unpaused()
         try:

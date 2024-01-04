@@ -8,7 +8,8 @@ class MyPiEventType(Enum):
     STOP_BUZZ = auto(),
     LED_ON = auto(),
     LED_OFF = auto(),
-    LCD_WRITE = auto()
+    LCD_WRITE = auto(),
+    DEBUG_GSG_SHAKE = auto()
 
 
 class MyPiEvent():
@@ -58,6 +59,12 @@ class MyPiEvent():
         self.type = MyPiEventType.LCD_WRITE
         self.cfg = cfg
         self.payload = text_to_write
+        self.event.set()
+
+
+    def set_debug_gsg_shake_event(self, cfg: dict):
+        self.type = MyPiEventType.DEBUG_GSG_SHAKE
+        self.cfg = cfg
         self.event.set()
     
 

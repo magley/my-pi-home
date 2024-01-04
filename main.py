@@ -10,8 +10,8 @@ from components.mds import MDS_Mqtt
 from components.mbkp import MBKP_Mqtt
 from components.buzzer import Buzzer_Mqtt
 from components.led import LED_Mqtt
-from components.gyro import Gyro_Mqtt
-from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm, websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer
+from components.gyro import Gyro_Mqtt, debug_shake
+from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm, websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer, on_GSG_motion_add_userdata, on_GSG_motion_check_for_alarm
 
 class Args(typing.NamedTuple):
     configs_path: str
@@ -51,6 +51,7 @@ def main():
     app.add_on_event_func('led', led_mqtt.put)
     app.add_on_event_func('lcd', lcd_mqtt.put)
 
+
     # [7]
     app.add_on_read_func(read_GDHT_to_GLCD(app))
     # [1]
@@ -60,6 +61,19 @@ def main():
     app.add_on_read_func(on_DPIR_movement_detect_person_from_DUS(app))
     # [5]
     app.add_on_read_func(on_PIR_when_no_people_alarm(app))
+    # [6]
+    # ---- vvvv DEBUG ONLY vvvv -------------------------------------
+    #
+    def debug_event_callback_gsg_shake(device_cfg, data, event):
+        if device_cfg['type'] != 'gyro':
+            return
+        debug_shake()
+    app.add_on_event_func('gyro', debug_event_callback_gsg_shake)
+    #                 
+    # ---- ^^^^ DEBUG ONLY ^^^^ -------------------------------------
+    app.add_on_read_func(on_GSG_motion_add_userdata(app))
+    app.add_on_read_func(on_GSG_motion_check_for_alarm(app))
+
 
     websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app)
 

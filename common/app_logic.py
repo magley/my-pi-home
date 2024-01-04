@@ -1,3 +1,6 @@
+import datetime
+import math
+import time
 from common.app import App
 import threading
 import requests
@@ -70,7 +73,6 @@ def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
     thread = threading.Thread(target=ws_code_running_in_background_thread, daemon=True)
     thread.start()
 
-
 # [7]
 def read_GDHT_to_GLCD(app: App):
     def _read_GDHT_to_GLCD(app: App, cfg: dict, data: dict):
@@ -95,7 +97,7 @@ def on_DPIR_movement_turn_on_DL_for10s(app: App):
 
     return lambda cfg, data: _on_DPIR_movement_turn_on_DL_for10s(app, cfg, data)
 
-# Utility
+# [2] Utility
 def on_DUS_add_userdata(app: App):
     """
     On each DUS reading, the new value is added to a data queue in app.userdata,
@@ -164,3 +166,72 @@ def on_PIR_when_no_people_alarm(app: App):
 
 
     return lambda cfg, data: _on_PIR_when_no_people_alarm(app, cfg, data)
+
+# [6] Utility
+def on_GSG_motion_add_userdata(app: App):
+    """
+    On each GSG reading, the new value is added to a data queue in app.userdata,
+    accessible as 'GSG', returned as a list.
+    ```
+    app.userdata['GSG'] = [
+        {
+            'ax': 123,
+            'ay': 456,
+            'az': 789,
+            'time': datetime.datetime
+        },
+        ...
+    ]
+    ```  
+    """
+
+    def _on_GSG_motion_add_userdata(app: App, cfg: dict, data: dict):
+        gsg_code = f'GSG'
+        if cfg['name'] != gsg_code:
+            return
+        
+        payload = {
+            'ax': data['accel.x'],
+            'ay': data['accel.y'],
+            'az': data['accel.z'],
+            'time': datetime.datetime.now()
+        }
+        
+        with app.userdata_lock:
+            li = app.userdata.get(gsg_code, [])
+            if len(li) > 10:
+                li = li[len(li) - 10:]
+            li.append(payload)
+            app.userdata[gsg_code] = li
+
+
+    return lambda cfg, data: _on_GSG_motion_add_userdata(app, cfg, data)
+
+# [6]
+def on_GSG_motion_check_for_alarm(app: App):
+    def _on_GSG_motion_check_for_alarm(app: App, cfg: dict, data: dict):
+        if cfg['name'] != 'GSG':
+            return
+        
+        last_motions = app.userdata.get('GSG', [])
+        if len(last_motions) < 5:
+            return
+        
+        integral = 0
+        for i in range(len(last_motions) - 1):
+            p1 = last_motions[i]
+            p2 = last_motions[i + 1]
+
+            acc1 = math.sqrt(p1['ax']**2 + p1['ay']**2 + p1['az']**2)
+            acc2 = math.sqrt(p2['ax']**2 + p2['ay']**2 + p2['az']**2)
+            k = (acc2 + acc1) / 2 # m/s^2
+            dt = (p2['time'] - p1['time']).total_seconds() # s
+
+            v = k * dt # m/s
+            integral += v
+
+        expected_velocity = 10 * len(last_motions)
+        if integral > expected_velocity * 2:
+            _post(app, {'alarm': True}, '/alarm')
+
+    return lambda cfg, data: _on_GSG_motion_check_for_alarm(app, cfg, data)

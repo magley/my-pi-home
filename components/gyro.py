@@ -4,7 +4,12 @@ from components.gyro_util import MPU6050
 
 # Only one gyroscope in the project so global variable is Ok.
 _mpu = MPU6050.MPU6050()
+_debug_shake = False
 
+def debug_shake():
+    global _debug_shake
+    _debug_shake = True
+    
 
 class Gyro_Mqtt(MqttSender):
     def __init__(self, config: dict):
@@ -52,8 +57,13 @@ def setup():
 
 
 def read_sim():
-    accel = [random.random(), random.random(), 9.81 + random.random()]
-    gyro = [random.random() * 5.0, random.random() * 5.0, random.random() * 5.0]
+    accel = [random.random() / 4, random.random() / 4, 9.81 + random.random() / 4]
+    gyro = [random.random() * 3.0, random.random() * 3.0, random.random() * 3.0]
+
+    global _debug_shake
+    if _debug_shake:
+        accel = [a + 200 for a in accel]
+        _debug_shake = False
     return _reading(accel, gyro)
 
 

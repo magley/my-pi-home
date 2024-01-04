@@ -106,9 +106,14 @@ def people():
         return ""
 
 
-@app.route("/alarm", methods = ['GET'])
+@app.route("/alarm", methods = ['GET', 'POST'])
 def alarm():
-    return { "alarm": state.alarm }
+    if request.method == 'GET':
+        return { "alarm": state.alarm }
+    elif request.method == 'POST':
+        is_alarm = request.json['alarm']
+        if state.alarm != is_alarm:
+            _set_alarm(is_alarm)
     
 
 @app.route("/rpir", methods = ['POST'])
