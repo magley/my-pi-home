@@ -11,8 +11,7 @@ from components.mbkp import MBKP_Mqtt
 from components.buzzer import Buzzer_Mqtt
 from components.led import LED_Mqtt
 from components.gyro import Gyro_Mqtt
-from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm
-
+from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm, websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer
 
 class Args(typing.NamedTuple):
     configs_path: str
@@ -61,6 +60,9 @@ def main():
     app.add_on_read_func(on_DPIR_movement_detect_person_from_DUS(app))
     # [5]
     app.add_on_read_func(on_PIR_when_no_people_alarm(app))
+
+    websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app)
+
 
 
     app.run()

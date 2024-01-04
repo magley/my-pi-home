@@ -2,6 +2,7 @@ from common.app import App
 import threading
 import requests
 import json
+import websocket
 
 
 ###############################################################################
@@ -19,6 +20,56 @@ def _get(app: App, endpoint: str) -> dict:
     return json.loads(response.content.decode('utf-8'))
 
 ###############################################################################
+
+# ALARM 1 [Buzz if alarm is on]
+def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
+    """
+    Usage
+    -----
+    Call it once on app startup. The websocket client runs in a background thread.
+
+    Description
+    ---
+    Subscribe to ws://[server]/ws/alarm
+
+    When I receive {'alarm': true}
+        -> Turn on the buzzers
+    When I receive {'alarm': false}
+        -> Turn off the buzzers
+
+    NOTE: The server should send a WS message ONLY when the alarm state changes,
+    and NOT periodically. If it sends periodically, then the BUZZ/STOP_BUZZ
+    events would fire up all the time, and each event would go in influxdb.
+    """
+
+    def ws_code_running_in_background_thread():
+        def on_open(ws):
+            pass
+
+        def on_close(ws, close_status_code, close_msg):
+            pass
+
+        def on_error(ws, error):
+            print(error)
+                
+        def on_message(ws, message):
+            msg = json.loads(message)
+            is_alarm = msg['alarm']
+            if is_alarm:
+                app.room_buzzer_on()
+            else:
+                app.room_buzzer_off()
+
+        ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/alarm",
+                            on_open=on_open,
+                            on_close=on_close,
+                            on_message=on_message,
+                            on_error=on_error)   
+        ws.run_forever()
+    
+    thread = threading.Thread(target=ws_code_running_in_background_thread, daemon=True)
+    thread.start()
+
 
 # [7]
 def read_GDHT_to_GLCD(app: App):
@@ -109,10 +160,7 @@ def on_PIR_when_no_people_alarm(app: App):
             return
         
         if data['motion'] is True:
-            num_of_people = _get(app, "people")['number_of_people']
-
-            if num_of_people == 0:
-                _post(app, { "alarm": True }, "alarm")
+            _post(app, {}, "rpir")
 
 
     return lambda cfg, data: _on_PIR_when_no_people_alarm(app, cfg, data)

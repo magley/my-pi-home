@@ -1,4 +1,4 @@
-class State:
+class State(object):
     def __init__(self):
         self._number_of_people = 0
         self._alarm = False
