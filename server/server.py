@@ -64,11 +64,30 @@ state = State()
 glo_ws_alarms = [] # List of websocket connections for the '/alarm' endpoint.
 
 
-def _publish_alarm(is_alarm: bool):
-    for ws in glo_ws_alarms:
-        print(f"Publish alarm: {is_alarm}")
+def _publish_alarm_to_ws(is_alarm: bool):
+    for ws in glo_ws_alarms:    
         data = { "alarm": is_alarm }
         ws.send(json.dumps(data))
+
+
+def _set_alarm(is_alarm: bool):
+    """
+    Set the alarm to True, publish through websocket, send value to InfluxDB.
+    """
+
+    state.set_alarm(is_alarm)
+    _publish_alarm_to_ws(is_alarm)
+
+    # Write to influxDB.
+    try:
+        write_api = influx.write_api(write_options=SYNCHRONOUS)
+        point = (
+            Point("alarm").field("is_alarm", int(state.alarm)) # Influxdb REQUIRES AT LEAST 1 FIELD!
+        )
+        write_api.write(bucket=cfg['influxdb']['bucket'], org=cfg['influxdb']['org'], record=point)
+
+    except Exception:
+        print("Error")
 
 
 @app.route("/people", methods = ['GET', 'POST'])
@@ -96,8 +115,7 @@ def alarm():
 def on_rpir_motion_detected():
     if request.method == 'POST':
         if state.number_of_people == 0 and not state.alarm:
-            state.set_alarm(True)
-            _publish_alarm(state.alarm)
+            _set_alarm(True)
         return ""
 
 
@@ -116,7 +134,7 @@ def ws_alarm(ws):
 
     # If a client connects AFTER the alarm has been set off, we want to let him know.
     if state.alarm:
-        _publish_alarm(state.alarm)
+        _publish_alarm_to_ws(state.alarm)
     
     while True:
         time.sleep(10) # Keep the connection alive.
