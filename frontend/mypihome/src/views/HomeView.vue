@@ -36,11 +36,15 @@ onMounted(() => {
     axiosInstance.get("/state").then((res) => {
         numOfPeople.value = res.data.number_of_people;
     });
-})
+});
 
 onUnmounted(() => {
     socket.close();
-})
+});
+
+const turnOffAlarm = () => {
+    axiosInstance.post("/alarm", {"alarm": false});
+}
 
 </script>
 
@@ -52,9 +56,24 @@ onUnmounted(() => {
 
 <div>
     <p>
-        Alarm (websocket): {{ isAlarm }}
+        Alarm (websocket): <span :class="{alarm: isAlarm}">{{ isAlarm }}</span>
+        <button :disabled="!isAlarm" @click="turnOffAlarm">Deactivate</button>
+
         <br/>
         Number of people (http axios): {{ numOfPeople }}
     </p>
 </div>
 </template>
+
+<style>
+.alarm {
+    background-color: red;
+    font-weight: bolder;
+    animation: blink 0.5s infinite;
+}
+
+@keyframes blink {
+  from { color: white; }
+  to { color: black; }
+}
+</style>

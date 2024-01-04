@@ -120,6 +120,7 @@ def alarm():
         is_alarm = request.json['alarm']
         if state.alarm != is_alarm:
             _set_alarm(is_alarm)
+        return ""
     
 
 @app.route("/rpir", methods = ['POST'])
