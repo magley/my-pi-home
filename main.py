@@ -11,7 +11,7 @@ from components.mbkp import MBKP_Mqtt
 from components.buzzer import Buzzer_Mqtt
 from components.led import LED_Mqtt
 from components.gyro import Gyro_Mqtt
-from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS
+from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm
 
 
 class Args(typing.NamedTuple):
@@ -22,7 +22,7 @@ class Args(typing.NamedTuple):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--configs-path', default='data/configs.json')
-    parser.add_argument('--pi', default=1)
+    parser.add_argument('--pi')
     args = parser.parse_args()
     return Args(args.configs_path, args.pi)
 
@@ -52,10 +52,17 @@ def main():
     app.add_on_event_func('led', led_mqtt.put)
     app.add_on_event_func('lcd', lcd_mqtt.put)
 
+    # [7]
     app.add_on_read_func(read_GDHT_to_GLCD(app))
+    # [1]
     app.add_on_read_func(on_DPIR_movement_turn_on_DL_for10s(app))
+    # [2]
     app.add_on_read_func(on_DUS_add_userdata(app))
     app.add_on_read_func(on_DPIR_movement_detect_person_from_DUS(app))
+    # [5]
+    app.add_on_read_func(on_PIR_when_no_people_alarm(app))
+
+
     app.run()
 
 if __name__ == '__main__':

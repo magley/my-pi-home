@@ -29,6 +29,8 @@ def get_set_text(cfg: dict):
 
 
 def setup():
+    global _mcp
+    global _lcd
     def _setup_mcp() -> PCF8574_GPIO:
         PCF8574_address = 0x27
         PCF8574A_address = 0x3F

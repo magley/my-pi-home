@@ -65,7 +65,7 @@ state = State()
 
 
 @app.route("/people", methods = ['GET', 'POST'])
-def get_number_of_people():
+def people():
     if request.method == 'GET':
         return {
             "number_of_people": state.number_of_people
@@ -78,8 +78,28 @@ def get_number_of_people():
             state.person_exit()
 
         return ""
-    
+
+
+@app.route("/alarm", methods = ['GET', 'POST'])
+def alarm():
+    if request.method == 'GET':
+        return {
+            "alarm": state.alarm
+        }
+    elif request.method == 'POST':
+        is_alarm_active = request.json['alarm']
+        state.set_alarm(is_alarm_active)
+
+        return ""
+
+
+@app.route("/state")
+def get_state():
+    return {
+        "alarm": state.alarm,
+        "number_of_people": state.number_of_people
+    }
 
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=False) # , host="10.1.121.29"
