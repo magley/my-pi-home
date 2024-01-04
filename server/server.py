@@ -7,8 +7,10 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 import paho.mqtt.client as mqtt
 from state import State
 from flask_sock import Sock
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 sock = Sock(app)
 cfg = config.load_config("config.json", "influx_token.secret")
 
@@ -65,9 +67,13 @@ glo_ws_alarms = [] # List of websocket connections for the '/alarm' endpoint.
 
 
 def _publish_alarm_to_ws(is_alarm: bool):
-    for ws in glo_ws_alarms:    
-        data = { "alarm": is_alarm }
-        ws.send(json.dumps(data))
+    glo_ws_alarms_copy = glo_ws_alarms.copy()
+    for ws in glo_ws_alarms_copy:    
+        try:
+            data = { "alarm": is_alarm }
+            ws.send(json.dumps(data))
+        except:
+            glo_ws_alarms.remove(ws)
 
 
 def _set_alarm(is_alarm: bool):
@@ -142,8 +148,9 @@ def ws_alarm(ws):
         _publish_alarm_to_ws(state.alarm)
     
     while True:
-        time.sleep(10) # Keep the connection alive.
+        time.sleep(10)
 
+    glo_ws_alarms.remove(ws)
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False) # , host="10.1.121.29"
