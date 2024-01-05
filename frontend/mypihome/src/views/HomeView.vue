@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
 import axios, {isCancel, AxiosError} from 'axios';
+import HomeBlueprint from '@/components/HomeBlueprint.vue';
 
 const axiosInstance = axios.create({
     baseURL: "http://127.0.0.1:5000"
@@ -61,6 +62,10 @@ const turnOffAlarm = () => {
 
         <br/>
         Number of people (http axios): {{ numOfPeople }}
+    </p>
+
+    <p>
+        <HomeBlueprint/>
     </p>
 </div>
 </template>
