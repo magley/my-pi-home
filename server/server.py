@@ -51,7 +51,9 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("iot/gyro")
 
 def on_message(client, userdata, msg):
-    save_to_db(json.loads(msg.payload.decode('utf-8')))
+    d = json.loads(msg.payload.decode('utf-8'))
+    _update_device_state(d)
+    save_to_db(d)
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -65,6 +67,9 @@ client.loop_start()
 state = State()
 glo_ws_alarms = [] # List of websocket connections for the '/alarm' endpoint.
 
+
+def _update_device_state(d: dict):
+    state.update_device_state(d)
 
 def _publish_alarm_to_ws(is_alarm: bool):
     glo_ws_alarms_copy = glo_ws_alarms.copy()
@@ -135,7 +140,8 @@ def on_rpir_motion_detected():
 def get_state():
     return {
         "alarm": state.alarm,
-        "number_of_people": state.number_of_people
+        "number_of_people": state.number_of_people,
+        "device_state": state.device_state
     }
 
 
@@ -152,6 +158,19 @@ def ws_alarm(ws):
         time.sleep(10)
 
     glo_ws_alarms.remove(ws)
+
+
+@sock.route("/ws/state")
+def ws_state(ws):
+    while True:
+        d = {
+            "alarm": state.alarm,
+            "number_of_people": state.number_of_people,
+            "device_state": state.device_state
+        }
+        ws.send(json.dumps(d))
+        time.sleep(2)
+
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False) # , host="10.1.121.29"

@@ -3,6 +3,10 @@ class State(object):
         self._number_of_people = 0
         self._alarm = False
 
+        # Each key is device code ('RDHT1', 'DS1', ...)
+        # Value is a python dict containing all relevant data.
+        self.device_state = {}
+
     def person_enter(self):
         self._number_of_people += 1
 
@@ -15,6 +19,50 @@ class State(object):
 
     def set_alarm(self, is_alarm_active: bool):
         self._alarm = is_alarm_active
+
+    def update_device_state(self, single_device_state_dict: dict):
+        """
+            Called on each device reading.
+            If a device has multiple fields, that's multiple calls of this function as per MQTT.
+            In that case, we UPDATE the values for those keys, while keeping the old ones.
+            So, in a way, this function partially updates the state for some device.
+
+            ```
+            {
+                "name": "RDHT1",
+                "runs_on": "PI1",
+                "measurement": "temperature",
+                "value": 29,
+            }
+            ```
+            This would translate into:
+            ```
+            self.device_state = {
+                "RDHT1": {
+                    "runs_on": "PI1",
+                    "temperature": 29,
+                }
+            }
+            ```
+            If the next measurement was with humidity instead of temperature for RDHT1, then:
+            ```
+            self.device_state = {
+                "RDHT1": {
+                    "runs_on": "PI1",
+                    "temperature": 29,
+                    "humidity": 43,
+                }
+            }
+            ```  
+        """
+        key = single_device_state_dict['name']
+        val = self.device_state.get(key, {})
+        for k, v in single_device_state_dict.items():
+            if k not in ['measurement', 'value']:
+                val[k] = v
+        val[single_device_state_dict['measurement']] = single_device_state_dict['value']
+        self.device_state[key] = val
+       
 
     @property
     def number_of_people(self):
