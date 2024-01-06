@@ -1,3 +1,4 @@
+import datetime
 import json
 import paho.mqtt.publish as publish
 import threading
@@ -44,11 +45,17 @@ class MqttSender:
         }
         ```
 
+        This function adds a "timestamp_" item in the dict automatically.
+        The "timestamp_" item is for internal use. It does not go in InfluxDB.
+        The value is a UNIX timestamp as "float".
+
         `cfg` - Device configuration.
         """
         
         if self.topic is None:
             raise Exception("MQTT Topic must not be None. Did you forget to set it when creating a new class?")
+        
+        payload["timestamp_"] = datetime.datetime.now().timestamp()
 
         mqtt_msg = (self.topic, json.dumps(payload), 0, True) # Topic, payload, QOS, Retained
         with self.counter_lock:

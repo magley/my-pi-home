@@ -1,3 +1,5 @@
+import datetime
+import threading
 import time
 from flask import Flask, request
 import json
@@ -71,13 +73,37 @@ glo_ws_alarms = [] # List of websocket connections for the '/alarm' endpoint.
 def _update_device_state(d: dict):
     state.update_device_state(d)
 
+
+def _periodically_set_state_pir_to_false():
+    """
+        The PIR sensor only sends signals when it detects motion. Therefore, it
+        is up to up to remove stale PIR readings after a while.
+        That way, we can emulate STATE from EVENTS.
+
+        Run this function in a background thread.
+    """
+    staleness_threshold_seconds = 2
+    sleep_time = 1
+
+    while True:
+        now = datetime.datetime.now().timestamp()
+        for device_name, device in state.device_state.items():
+            if 'PIR' not in device_name:
+                continue
+            is_stale = (now - device['timestamp_']) > staleness_threshold_seconds 
+            if is_stale:
+                state.device_state[device_name]['motion'] = False
+
+        time.sleep(sleep_time)
+
+
 def _publish_alarm_to_ws(is_alarm: bool):
     glo_ws_alarms_copy = glo_ws_alarms.copy()
     for ws in glo_ws_alarms_copy:    
         try:
             data = { "alarm": is_alarm }
             ws.send(json.dumps(data))
-        except:
+        except Exception:
             glo_ws_alarms.remove(ws)
 
 
@@ -173,4 +199,7 @@ def ws_state(ws):
 
 
 if __name__ == '__main__':
+    t = threading.Thread(target=_periodically_set_state_pir_to_false, daemon=True)
+    t.start()
+
     app.run(debug=True, use_reloader=False) # , host="10.1.121.29"

@@ -8,7 +8,6 @@ const axiosInstance = axios.create({
 });
 
 const isAlarm = ref(false);
-const numOfPeople = ref(0);
 
 let socket;
 onMounted(() => {
@@ -20,10 +19,6 @@ onMounted(() => {
     socket.onerror = function(error) {
         console.error(error);
     };
-
-    axiosInstance.get("/state").then((res) => {
-        numOfPeople.value = res.data.number_of_people;
-    });
 });
 
 onUnmounted(() => {
@@ -44,11 +39,8 @@ const turnOffAlarm = () => {
 
 <div>
     <p>
-        Alarm (websocket): <span :class="{alarm: isAlarm}">{{ isAlarm }}</span>
+        Alarm: <span :class="{alarm: isAlarm}">{{ isAlarm }}</span>
         <button :disabled="!isAlarm" @click="turnOffAlarm">Deactivate</button>
-
-        <br/>
-        Number of people (http axios): {{ numOfPeople }}
     </p>
 
     <p>

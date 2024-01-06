@@ -1,40 +1,33 @@
 <script setup>
+import DHT from '@/components/device-details/DHT.vue';
+import Gyro from '@/components/device-details/Gyro.vue';
+import UDS from '@/components/device-details/UDS.vue';
+import PIR from '@/components/device-details/PIR.vue';
+
 const props = defineProps({
     device: Object
 });
 
-const gyroscope_accelertion = (device) => {
-    let acc_x = device["accel.x"];
-    let acc_y = device["accel.y"];
-    let acc_z = device["accel.z"];
-    let acc = Math.sqrt(acc_x**2 + acc_y**2 + acc_z**2);
-    return `${acc.toFixed(2)}`
-}
-const gyroscope_rotation = (device) => {
-    let gyro_x = device["gyro.x"];
-    let gyro_y = device["gyro.y"];
-    let gyro_z = device["gyro.z"];
-    let gyro = Math.sqrt(gyro_x**2 + gyro_y**2 + gyro_z**2);
-    return `${acc.toFixed(2)}`
-}
+
 
 </script>
 
 <template>
-<!-- DHT-->
+
 <template v-if="device.temperature != undefined">
-    {{ device.name }}: {{ device.temperature }}&deg;C, {{ device.humidity }}%
+    <DHT :device="device" />
 </template>
 
-<!-- Gyro-->
 <template v-else-if="device['accel.x'] != undefined">
-    {{ device.name }}: {{ gyroscope_accelertion(device) }} m/s<sup>2</sup>;
-    ({{ device['gyro.x'].toFixed(2) }}, {{ device['gyro.y'].toFixed(2) }},{{ device['gyro.z'].toFixed(2) }})
+    <Gyro :device="device" />
 </template>
 
-<!-- DUS-->
 <template v-else-if="device.distance_in_cm != undefined">
-    {{ device.name }}: Measured distance: {{ device.distance_in_cm.toFixed(3) }}cm
+    <UDS :device="device" />
+</template>
+
+<template v-else-if="device.motion != undefined">
+    <PIR :device="device" />
 </template>
 
 <!-- Else-->

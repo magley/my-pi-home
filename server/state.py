@@ -33,6 +33,7 @@ class State(object):
                 "runs_on": "PI1",
                 "measurement": "temperature",
                 "value": 29,
+                "timestamp_": 1712247928.12732
             }
             ```
             This would translate into:
@@ -57,6 +58,15 @@ class State(object):
         """
         key = single_device_state_dict['name']
         val = self.device_state.get(key, {})
+
+        is_newer = True
+        if "timestamp_" in val:
+            if val["timestamp_"] > single_device_state_dict["timestamp_"]:
+                is_newer = False
+        
+        if not is_newer:
+            return
+
         for k, v in single_device_state_dict.items():
             if k not in ['measurement', 'value']:
                 val[k] = v

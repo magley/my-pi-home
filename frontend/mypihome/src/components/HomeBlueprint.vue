@@ -38,6 +38,9 @@ const isHovered = (code) => {
 </script>
 
 <template>
+    <h2>
+        Number of people: {{homeState.number_of_people}}
+    </h2> 
 <div class="container">
     <svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
         <image href="../../public/home.png" />
@@ -45,7 +48,7 @@ const isHovered = (code) => {
         <!-- PI1 -->
         <HomeDeviceSvgElement label-text="RPIR2" :x= "95" :y="305" :ldx="-20" :ldy="-15" color="red" @mouseover="onHoverDevice('RPIR2')" @mouseleave="onUnhoverDevice('RPIR2')" :force-hover="isHovered('RPIR2')"/>
         <HomeDeviceSvgElement label-text="DMS"   :x="190" :y="410" :ldx="-15" :ldy="-15" color="red" @mouseover="onHoverDevice('DMS')" @mouseleave="onUnhoverDevice('DMS')" :force-hover="isHovered('DMS')"/>
-        <HomeDeviceSvgElement label-text="RDTH2" :x="106" :y="455" :ldx="-20" :ldy="-15" color="red" @mouseover="onHoverDevice('RDTH2')" @mouseleave="onUnhoverDevice('RDTH2')" :force-hover="isHovered('RDTH2')"/>
+        <HomeDeviceSvgElement label-text="RDHT2" :x="106" :y="455" :ldx="-20" :ldy="-15" color="red" @mouseover="onHoverDevice('RDHT2')" @mouseleave="onUnhoverDevice('RDHT2')" :force-hover="isHovered('RDHT2')"/>
         <HomeDeviceSvgElement label-text="RPIR1" :x="142" :y="486" :ldx="-20" :ldy="-15" color="red" @mouseover="onHoverDevice('RPIR1')" @mouseleave="onUnhoverDevice('RPIR1')" :force-hover="isHovered('RPIR1')"/>
         <HomeDeviceSvgElement label-text="RDHT1" :x="100" :y="573" :ldx="-20" :ldy="-15" color="red" @mouseover="onHoverDevice('RDHT1')" @mouseleave="onUnhoverDevice('RDHT1')" :force-hover="isHovered('RDHT1')"/>
         <HomeDeviceSvgElement label-text="DB"    :x="250" :y="480" :ldx="-10" :ldy="-15" color="red" @mouseover="onHoverDevice('DB')" @mouseleave="onUnhoverDevice('DB')" :force-hover="isHovered('DB')"/>
