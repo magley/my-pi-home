@@ -3,12 +3,16 @@ import DHT from '@/components/device-details/DHT.vue';
 import Gyro from '@/components/device-details/Gyro.vue';
 import UDS from '@/components/device-details/UDS.vue';
 import PIR from '@/components/device-details/PIR.vue';
+import DoorSensor from '@/components/device-details/DoorSensor.vue';
+import DMS from '@/components/device-details/DMS.vue';
+import Buzzer from '@/components/device-details/Buzzer.vue';
+import LED from '@/components/device-details/LED.vue';
+import LCD from '@/components/device-details/LCD.vue';
+
 
 const props = defineProps({
     device: Object
 });
-
-
 
 </script>
 
@@ -28,6 +32,26 @@ const props = defineProps({
 
 <template v-else-if="device.motion != undefined">
     <PIR :device="device" />
+</template>
+
+<template v-else-if="device.open != undefined">
+    <DoorSensor :device="device" />
+</template>
+
+<template v-else-if="device.keys != undefined">
+    <DMS :device="device" />
+</template>
+
+<template v-else-if="device.buzz != undefined">
+    <Buzzer :device="device" />
+</template>
+
+<template v-else-if="device.switch != undefined">
+    <LED :device="device" />
+</template>
+
+<template v-else-if="device.lcd != undefined">
+    <LCD :device="device" />
 </template>
 
 <!-- Else-->

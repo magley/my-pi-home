@@ -7,7 +7,8 @@ import threading
 class MqttSender:
     def __init__(self, config: dict):
         self.batch = []
-        self.limit = 5
+        self.limit = 5 # TODO: This is an issue for actuators because you need to send the same message
+        # N times before it gets sent to the server and updated in the DB and the web app.
         self.config = config
         self.counter_lock = threading.Lock()
         self.pub_event = threading.Event()

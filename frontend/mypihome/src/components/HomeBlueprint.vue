@@ -42,7 +42,7 @@ const isHovered = (code) => {
         Number of people: {{homeState.number_of_people}}
     </h2> 
 <div class="container">
-    <svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+    <svg class="left" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
         <image href="../../public/home.png" />
 
         <!-- PI1 -->
@@ -76,19 +76,32 @@ const isHovered = (code) => {
         <HomeDeviceSvgElement label-text="B4SD"  :x="573"  :y="50" :ldx="-10" :ldy="-15" color="blue" @mouseover="onHoverDevice('B4SD')" @mouseleave="onUnhoverDevice('B4SD')"  :force-hover="isHovered('B4SD')"/>
     </svg>
 
-    <span>
-        <div v-for="(value, key, index) in homeState.device_state">
-            <div :class="{highlight: isHovered(key)}" @mouseover="onHoverDevice(key)" @mouseleave="onUnhoverDevice(key)">
+    <span class="right">
+        <template v-for="(value, key, index) in homeState.device_state">
+            <div class="details-item" :class="{highlight: isHovered(key)}" @mouseover="onHoverDevice(key)" @mouseleave="onUnhoverDevice(key)">
                 <HomeDeviceDetals :device="value" />
             </div>
-        </div>
+        </template>
     </span>
 </div>
 </template>
 
 <style>
 .container {
-    display: flex;
+    display:flex;
+}
+
+.left {
+    min-width: 800px;
+}
+
+.details-item {
+    display: inline-block;
+    min-width: 150px;
+    min-height: 150px;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid greenyellow;
 }
 
 .highlight {

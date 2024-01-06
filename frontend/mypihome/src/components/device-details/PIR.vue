@@ -4,9 +4,9 @@ const props = defineProps({
 });
 
 const motionString = (device) => {
-    if (device['motion'] == true) {
+    if (device['motion'] === true) {
         return "Motion detected!";
-    } else if (device['motion'] == false) {
+    } else if (device['motion'] === false) {
         return "No motion";
     }
     return "?";
