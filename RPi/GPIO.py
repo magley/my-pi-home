@@ -31,3 +31,7 @@ def add_event_detect(pin, condition, callback, bouncetime=100):
 
 def cleanup():
     pass
+
+
+def setwarnings(should_warn: bool):
+    pass

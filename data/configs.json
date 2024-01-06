@@ -1,4 +1,8 @@
 {
+    "server": {
+        "url": "http://127.0.0.1:5000",
+        "url_ws": "ws://127.0.0.1:5000/ws"
+    },
     "mqtt": {
         "host": "127.0.0.1",
         "port": 1883
@@ -9,7 +13,7 @@
             "type": "dht",
             "pins": [17],
             "simulated": true,
-            "read_interval": 2.5,
+            "read_interval": 1.0,
             "runs_on": "PI1"
         },
         {
@@ -17,7 +21,7 @@
             "type": "dht",
             "pins": [27],
             "simulated": true,
-            "read_interval": 2.4,
+            "read_interval": 1.0,
             "runs_on": "PI1"
         },
         {
@@ -33,7 +37,7 @@
             "type": "pir",
             "pins": [10],
             "simulated": true,
-            "read_interval": 2.0,
+            "read_interval": 1.0,
             "runs_on": "PI1"
         },
         {
@@ -49,7 +53,7 @@
             "type": "pir",
             "pins": [11],
             "simulated": true,
-            "read_interval": 3.0,
+            "read_interval": 1.0,
             "runs_on": "PI1"
         },
         {
@@ -57,7 +61,7 @@
             "type": "mds",
             "pins": [0],
             "simulated": true,
-            "read_interval": 0.5,
+            "read_interval": 1.0,
             "runs_on": "PI1"
         },
         {
@@ -65,7 +69,7 @@
             "type": "led",
             "pins": [5],
             "simulated": true,
-            "read_interval": 1.5,
+            "read_interval": 1.0,
             "runs_on": "PI1"
         },
         {
@@ -83,6 +87,78 @@
             "simulated": true,
             "read_interval": 1.0,
             "runs_on": "PI1"
+        },
+
+
+
+
+
+
+
+
+        {
+            "name": "DS2",
+            "type": "mds",
+            "pins": [0],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+        {
+            "name": "DUS2",
+            "type": "uds",
+            "pins": [23, 24],
+            "simulated": true,
+            "read_interval": 1,
+            "runs_on": "PI2"
+        }, 
+        {
+            "name": "DPIR2",
+            "type": "pir",
+            "pins": [22],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+        {
+            "name": "GDHT",
+            "type": "dht",
+            "pins": [17],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+        {
+            "name": "GLCD",
+            "type": "lcd",
+            "pins": [2, 3],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"     
+        },
+        {
+            "name": "GSG",
+            "type": "gyro",
+            "pins": [2, 3],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2" 
+        },
+        {
+            "name": "RPIR3",
+            "type": "pir",
+            "pins": [10],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+        {
+            "name": "RDHT3",
+            "type": "dht",
+            "pins": [27],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
         }
     ]
 }

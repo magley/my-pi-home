@@ -1,3 +1,4 @@
+import datetime
 import json
 import paho.mqtt.publish as publish
 import threading
@@ -6,7 +7,8 @@ import threading
 class MqttSender:
     def __init__(self, config: dict):
         self.batch = []
-        self.limit = 5
+        self.limit = 5 # TODO: This is an issue for actuators because you need to send the same message
+        # N times before it gets sent to the server and updated in the DB and the web app.
         self.config = config
         self.counter_lock = threading.Lock()
         self.pub_event = threading.Event()
@@ -44,11 +46,17 @@ class MqttSender:
         }
         ```
 
+        This function adds a "timestamp_" item in the dict automatically.
+        The "timestamp_" item is for internal use. It does not go in InfluxDB.
+        The value is a UNIX timestamp as "float".
+
         `cfg` - Device configuration.
         """
         
         if self.topic is None:
             raise Exception("MQTT Topic must not be None. Did you forget to set it when creating a new class?")
+        
+        payload["timestamp_"] = datetime.datetime.now().timestamp()
 
         mqtt_msg = (self.topic, json.dumps(payload), 0, True) # Topic, payload, QOS, Retained
         with self.counter_lock:
