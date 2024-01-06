@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import HomeDeviceSvgElement from './HomeDeviceSvgElement.vue';
 import HomeDeviceDetals from './HomeDeviceDetails.vue';
+import Charts from './Charts.vue';
 
 const homeState = ref(0);
 
@@ -84,6 +85,10 @@ const isHovered = (code) => {
         </template>
     </span>
 </div>
+
+<Charts />
+
+
 </template>
 
 <style>
