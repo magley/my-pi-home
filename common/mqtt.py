@@ -4,11 +4,12 @@ import paho.mqtt.publish as publish
 import threading
 
 
+glo_batch = []
+glo_batch_limit = 20
+
+
 class MqttSender:
     def __init__(self, config: dict):
-        self.batch = []
-        self.limit = 5 # TODO: This is an issue for actuators because you need to send the same message
-        # N times before it gets sent to the server and updated in the DB and the web app.
         self.config = config
         self.counter_lock = threading.Lock()
         self.pub_event = threading.Event()
@@ -60,9 +61,9 @@ class MqttSender:
 
         mqtt_msg = (self.topic, json.dumps(payload), 0, True) # Topic, payload, QOS, Retained
         with self.counter_lock:
-            self.batch.append(mqtt_msg)
+            glo_batch.append(mqtt_msg)
 
-        if len(self.batch) >= self.limit:
+        if len(glo_batch) >= glo_batch_limit:
             self.on_flush()
 
 
@@ -78,8 +79,8 @@ class MqttSender:
 
             local_batch = []
             with self.counter_lock:
-                local_batch = self.batch.copy()
-                self.batch.clear()
+                local_batch = glo_batch.copy()
+                glo_batch.clear()
 
             publish.multiple(
                 local_batch, 

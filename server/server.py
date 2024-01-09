@@ -99,7 +99,7 @@ def _periodically_set_state_pir_to_false():
 
 def _publish_alarm_to_ws(is_alarm: bool):
     glo_ws_alarms_copy = glo_ws_alarms.copy()
-    for ws in glo_ws_alarms_copy:    
+    for ws in glo_ws_alarms_copy:
         try:
             data = { "alarm": is_alarm }
             ws.send(json.dumps(data))
@@ -195,7 +195,7 @@ def ws_state(ws):
             "device_state": state.device_state
         }
         ws.send(json.dumps(d))
-        time.sleep(2)
+        time.sleep(1)
 
 
 if __name__ == '__main__':
