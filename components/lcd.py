@@ -28,21 +28,25 @@ def get_set_text(cfg: dict):
     return set_text
 
 
-def setup():
+def setup(is_simulated: bool):
     global _mcp
     global _lcd
+
+    if is_simulated:
+        return
+
     def _setup_mcp() -> PCF8574_GPIO:
         PCF8574_address = 0x27
         PCF8574A_address = 0x3F
-        mcp: PCF8574_GPIO
+        mcp: PCF8574_GPIO = None
         try:
             mcp = PCF8574_GPIO(PCF8574_address)
         except Exception:
             try:
                 mcp = PCF8574_GPIO(PCF8574A_address)
             except Exception:
-                print ('I2C Address Error !')
-                exit(1)
+                print("I2C Address Error. LCD won't work!")
+                # exit(1)
         return mcp
 
     def _setup_lcd(mcp: PCF8574_GPIO) -> Adafruit_CharLCD:

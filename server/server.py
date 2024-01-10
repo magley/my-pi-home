@@ -202,4 +202,4 @@ if __name__ == '__main__':
     t = threading.Thread(target=_periodically_set_state_pir_to_false, daemon=True)
     t.start()
 
-    app.run(debug=True, use_reloader=False) # , host="10.1.121.29"
+    app.run(debug=True, use_reloader=False, host="127.0.0.1")

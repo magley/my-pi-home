@@ -202,7 +202,7 @@ class App:
             elif device_cfg['type'] == 'mbkp':
                 mbkp.setup(device_cfg['pins'][:4], device_cfg['pins'][4:])
             elif device_cfg['type'] == 'lcd':
-                lcd.setup() # TODO: Pins?
+                lcd.setup(device_cfg['simulated']) # TODO: Pins?
             elif device_cfg['type'] == 'gyro':
                 gyro.setup() # TODO: Pins?
             else:

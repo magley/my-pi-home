@@ -3,17 +3,17 @@
 </script>
 
 <template>
-
+    
 <!-- Alarm -->
-<iframe src="http://localhost:3000/d-solo/a6c16b56-5d85-4495-a45a-039c57b3f39e/alarms?orgId=1&from=1704547083723&to=1704568683723&panelId=1" width="450" height="200" frameborder="0"></iframe>
+<iframe src="http://localhost:3000/d-solo/a6c16b56-5d85-4495-a45a-039c57b3f39e/alarms?orgId=1&refresh=5s&panelId=1" width="450" height="200" frameborder="0"></iframe>
 
 <!-- Buzzer -->
-<iframe src="http://localhost:3000/d-solo/bbba139c-497d-4053-ab4a-df03cb589de8/buzzer?orgId=1&from=1702927041429&to=1704568899968&panelId=1" width="450" height="200" frameborder="0"></iframe>
+<iframe src="http://localhost:3000/d-solo/bbba139c-497d-4053-ab4a-df03cb589de8/buzzer?orgId=1&refresh=5s&panelId=1" width="450" height="200" frameborder="0"></iframe>
 
 <!-- RDHT 1 -->
-<iframe src="http://localhost:3000/d-solo/c9baac51-8a62-4371-98d7-3dd8b120e979/dht?orgId=1&refresh=5s&from=1704569029037&to=1704569329037&panelId=2" width="450" height="200" frameborder="0"></iframe>
+<iframe src="http://localhost:3000/d-solo/c9baac51-8a62-4371-98d7-3dd8b120e979/dht?orgId=1&refresh=2s&panelId=2" width="450" height="200" frameborder="0"></iframe>
 <!-- RDHT 2 -->
-<iframe src="http://localhost:3000/d-solo/c9baac51-8a62-4371-98d7-3dd8b120e979/dht?orgId=1&refresh=5s&from=1704569060171&to=1704569360171&panelId=3" width="450" height="200" frameborder="0"></iframe>
+<iframe src="http://localhost:3000/d-solo/c9baac51-8a62-4371-98d7-3dd8b120e979/dht?orgId=1&orgId=1&refresh=2s&panelId=3" width="450" height="200" frameborder="0"></iframe>
 
 <!-- Gyroscope acceleration -->
 <iframe src="http://localhost:3000/d-solo/c1d4c66e-d278-4f72-813c-fdc56dbf97cb/gyroscope?orgId=1&from=1704569110888&to=1704569410888&panelId=1" width="450" height="200" frameborder="0"></iframe>

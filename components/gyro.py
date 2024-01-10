@@ -3,7 +3,7 @@ from common.mqtt import MqttSender, build_payload
 from components.gyro_util import MPU6050
 
 # Only one gyroscope in the project so global variable is Ok.
-_mpu = MPU6050.MPU6050()
+_mpu = None
 _debug_shake = False
 
 def debug_shake():
@@ -53,6 +53,10 @@ def _reading(accel: list[float], gyro: list[float]):
 
 
 def setup():
+    global _mpu
+    if _mpu is None:
+        _mpu = MPU6050.MPU6050()
+    
     _mpu.dmp_initialize()
 
 
