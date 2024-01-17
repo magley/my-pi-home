@@ -78,8 +78,8 @@ def read_GDHT_to_GLCD(app: App):
     def _read_GDHT_to_GLCD(app: App, cfg: dict, data: dict):
         if cfg['name'] != 'GDHT':
             return
-        
-        txt = f"T: {data['temperature']}\nH: {data['humidity']}"
+
+        txt = f"T: {round(data['temperature'], 1)}\nH: {round(data['humidity'], 1)}"
         app.lcd_write_text(txt)
         
     return lambda cfg, data : _read_GDHT_to_GLCD(app, cfg, data)

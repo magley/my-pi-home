@@ -101,15 +101,31 @@ def build_payload(cfg: dict, data: dict, field: str):
         "simulated": cfg["simulated"],
         "runs_on": cfg["runs_on"],
         "name": cfg["name"],
-        "value": data[field] 
+        "value": data[field],
+        "value_type": "int"|"float"|"bool"|"string"
     } 
     ```
     """
+
+    def type_hint(val):
+        if isinstance(val, int):
+            return "int"
+        elif isinstance(val, float):
+            return "float"
+        elif isinstance(val, bool):
+            return "bool"
+        elif isinstance(val, str):
+            return "string"
+        elif isinstance(val, []):
+            return "array"
+        else:
+            return "object"
     
     return {
         "measurement": field,
         "simulated": cfg["simulated"],
         "runs_on": cfg["runs_on"],
         "name": cfg["name"],
-        "value": data[field]
+        "value": data[field],
+        "value_type": type_hint(data[field])
     }

@@ -27,8 +27,20 @@ def _reading(open: int):
     return { "open": open }
 
 
+_is_pressed = [False]
+def button_pressed(pin):
+    global _is_pressed
+    v = (GPIO.input(pin) == 0)
+    _is_pressed.append(v)
+
+    # if len(_is_pressed) > 10:
+    #    _is_pressed = _is_pressed[]
+
+
+
 def setup(pin: int):
-    GPIO.setup(pin, GPIO.IN)
+    GPIO.setup(pin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.add_event_detect(pin, GPIO.BOTH, callback=button_pressed, bouncetime=100)
 
 
 def read_sim():
@@ -36,5 +48,11 @@ def read_sim():
 
 
 def read_real(pin: int):
-    # Works as a button, but we care about its current state and not the event.
-    return _reading(GPIO.input(pin))
+    print(_is_pressed[-1])
+    return _reading(1 if _is_pressed[-1] else 0)
+
+"""
+GPIO.add_event_detect(BUTTON_PIN, GPIO.BOTH, callback=button_pressed, bouncetime=100)
+def button_pressed(pin):
+    released = GPIO.input(BUTTON_PIN))
+"""

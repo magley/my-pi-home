@@ -204,7 +204,7 @@ class App:
             elif device_cfg['type'] == 'lcd':
                 lcd.setup(device_cfg['simulated']) # TODO: Pins?
             elif device_cfg['type'] == 'gyro':
-                gyro.setup() # TODO: Pins?
+                gyro.setup(device_cfg['simulated']) # TODO: Pins?
             else:
                 raise Exception(f'Could not setup device for type {device_cfg["type"]}.\nDid you forget to include an else-if?')
 

@@ -10,5 +10,5 @@ const props = defineProps({
 <br />
 <b class="green">{{ device.name }}</b>
 <br />
-{{ device.temperature }}&deg;C, {{ device.humidity }}%
+{{ device.temperature.toFixed(2) }}&deg;C, {{ device.humidity.toFixed(2) }}%
 </template>

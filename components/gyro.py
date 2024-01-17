@@ -52,12 +52,13 @@ def _reading(accel: list[float], gyro: list[float]):
     }
 
 
-def setup():
-    global _mpu
-    if _mpu is None:
-        _mpu = MPU6050.MPU6050()
-    
-    _mpu.dmp_initialize()
+def setup(simulated: bool):
+    if not simulated:
+        global _mpu
+        if _mpu is None:
+            _mpu = MPU6050.MPU6050()
+        
+        _mpu.dmp_initialize()
 
 
 def read_sim():
