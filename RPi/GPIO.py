@@ -8,6 +8,8 @@ BCM = 4
 RISING = 5
 FALLING = 6
 PUD_DOWN = 7
+PUD_UP = 8
+BOTH = 9
 
 def setmode(mode):
     pass
