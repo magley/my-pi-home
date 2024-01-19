@@ -1,4 +1,3 @@
-import enum
 import threading
 import time
 import typing
@@ -8,23 +7,20 @@ import RPi.GPIO as GPIO
 import common.colorizer as colorizer
 
 
-from components import buzzer, dht, led, mbkp, mds, pir, uds
-
-
-class AppType(enum.Enum):
-    GUI = enum.auto()
-    CLI = enum.auto()
+from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd, gyro
 
 
 class App:
-    def __init__(self, type: AppType, config: dict):
-        self.type = type
+    def __init__(self, config: dict, pi_id: int):
         self.config = config
         self.configs_colors = {}
         self.print_thread = PrintThread()
         self.event = MyPiEvent()
         self._on_read_funcs = []
         self._on_event_funcs = {}
+        self.pi_id = pi_id
+        self.userdata = {}
+        self.userdata_lock = threading.Lock()
 
         self.add_on_read_func(self._log_read)
 
@@ -44,20 +40,21 @@ class App:
 
         self.print_thread.put(ss, col)
 
-    def _log_event(self, device_cfg: dict, type: MyPiEventType):
+
+    def _log_event(self, device_cfg: dict, type: MyPiEventType, payload):
         t = time.localtime()
         tstr = time.strftime("%H:%M:%S", t)
         dname = str.ljust(device_cfg["name"], 8)
         dtype = str.ljust(device_cfg["type"], 8)
         dpi = str.ljust(device_cfg["runs_on"], 5)
-        ss = f'[{tstr}] {dname} [{dtype}] @ {dpi}:\t{type}'
+        ss = f'[{tstr}] {dname} [{dtype}] @ {dpi}:\t{type}\t[{payload}]'
 
         available_colors = colorizer.available_colors()
         types = list(set(cfg["type"] for cfg in self.config["devices"]))
         col_index = types.index(device_cfg["type"])
         col = available_colors[col_index]
 
-        self.print_thread.put(ss, col, True)
+        self.print_thread.put(ss, col)
 
 
     def add_on_read_func(self, f: typing.Callable):
@@ -109,6 +106,7 @@ class App:
                 if self.event.wait():
                     type = self.event.type
                     cfg = self.event.cfg
+                    payload = self.event.payload
                     from common.event import MyPiEventType
 
                     if type == MyPiEventType.EMPTY:
@@ -125,10 +123,16 @@ class App:
                     elif type == MyPiEventType.LED_OFF:
                         led.get_turn_off(cfg)()
                         self.invoke_event_funcs(cfg, {"switch": 0}, "switch")
+                    elif type == MyPiEventType.LCD_WRITE:
+                        lcd.get_set_text(cfg)(payload)
+                        self.invoke_event_funcs(cfg, {"lcd": payload}, "lcd")
+                    elif type == MyPiEventType.DEBUG_GSG_SHAKE:
+                        gyro.debug_shake()
+                        self.invoke_event_funcs(cfg, {"gyro": payload}, "gyro")
                     else:
-                        raise Exception(f'Unsupported Event type: {type}')
+                        raise Exception(f'Unimplemented Event type: {type}')
                     
-                    self._log_event(cfg, type)
+                    self._log_event(cfg, type, payload)
                     self.event.consume()
 
 
@@ -136,22 +140,9 @@ class App:
 
 
     def _run(self):
-        import ui.gui as gui
         import ui.cli as cli
+        cli.console_app(self)
 
-        if self.type == AppType.GUI:
-            try:
-                gui.gui_app(self)
-            except KeyboardInterrupt as e:
-                raise e
-            except Exception:
-                print("Could not start GUI app. Fallback to console app...")
-                cli.console_app(self)
-        elif self.type == AppType.CLI:
-            cli.console_app(self)
-        else:
-            raise Exception('Unknown app type')
-        
 
     def get_device_by_code(self, code: str) -> dict:
         for cfg in self.config['devices']:
@@ -176,10 +167,21 @@ class App:
         self.event.set_led_event(self.get_device_by_code('DL'), False)
 
 
+    def lcd_write_text(self, text: str):
+        self.event.set_lcd_event(self.get_device_by_code('GLCD'), text)
+
+
+    def gsg_debug_shake(self):
+        self.event.set_debug_gsg_shake_event(self.get_device_by_code('GSG'))
+
+
     def setup_devices(self):
         GPIO.setmode(GPIO.BCM)
 
         for device_cfg in self.config['devices']:
+            if device_cfg['runs_on'] != f'PI{self.pi_id}':
+                continue
+
             pin = device_cfg['pins'][0]
             
             if device_cfg['type'] == 'dht':
@@ -198,7 +200,11 @@ class App:
             elif device_cfg['type'] == 'uds':
                 uds.setup(device_cfg['pins'][0], device_cfg['pins'][1])
             elif device_cfg['type'] == 'mbkp':
-                mbkp.setup(device_cfg['pins'][:4], device_cfg['pins'][4:])    
+                mbkp.setup(device_cfg['pins'][:4], device_cfg['pins'][4:])
+            elif device_cfg['type'] == 'lcd':
+                lcd.setup(device_cfg['simulated']) # TODO: Pins?
+            elif device_cfg['type'] == 'gyro':
+                gyro.setup(device_cfg['simulated']) # TODO: Pins?
             else:
                 raise Exception(f'Could not setup device for type {device_cfg["type"]}.\nDid you forget to include an else-if?')
 
@@ -228,6 +234,9 @@ class App:
 
 
         for device_cfg in self.config['devices']:
+            if device_cfg['runs_on'] != f'PI{self.pi_id}':
+                continue
+    
             if device_cfg['type'] == 'dht':
                 start_reader(device_cfg, dht.get_reader_func)
             elif device_cfg['type'] == 'pir':
@@ -242,5 +251,9 @@ class App:
                 start_reader(device_cfg, uds.get_reader_func)
             elif device_cfg['type'] == 'mbkp':
                 start_reader(device_cfg, mbkp.get_reader_func)
+            elif device_cfg['type'] == 'lcd':
+                pass # Actuator doesn't have a reader.
+            elif device_cfg['type'] == 'gyro':
+                start_reader(device_cfg, gyro.get_reader_func)
             else:
                 raise Exception(f'Could not start device runner for type {device_cfg["type"]}.\nDid you forget to include an else-if?')

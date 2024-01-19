@@ -7,7 +7,9 @@ class MyPiEventType(Enum):
     BUZZ = auto(),
     STOP_BUZZ = auto(),
     LED_ON = auto(),
-    LED_OFF = auto()
+    LED_OFF = auto(),
+    LCD_WRITE = auto(),
+    DEBUG_GSG_SHAKE = auto()
 
 
 class MyPiEvent():
@@ -27,6 +29,7 @@ class MyPiEvent():
     def __init__(self):
         self.type: MyPiEventType = MyPiEventType.EMPTY
         self.cfg = {} # Configuration for the device whose event is being fired.
+        self.payload = None # Payload for the event, if any.
         self.event = Event()
 
 
@@ -48,6 +51,19 @@ class MyPiEvent():
 
     def set_led_event(self, cfg: dict, turn_on: bool):
         self.type = MyPiEventType.LED_ON if turn_on else MyPiEventType.LED_OFF
+        self.cfg = cfg
+        self.event.set()
+
+
+    def set_lcd_event(self, cfg: dict, text_to_write: str):
+        self.type = MyPiEventType.LCD_WRITE
+        self.cfg = cfg
+        self.payload = text_to_write
+        self.event.set()
+
+
+    def set_debug_gsg_shake_event(self, cfg: dict):
+        self.type = MyPiEventType.DEBUG_GSG_SHAKE
         self.cfg = cfg
         self.event.set()
     

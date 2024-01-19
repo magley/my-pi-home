@@ -1,12 +1,15 @@
+import datetime
 import json
 import paho.mqtt.publish as publish
 import threading
 
 
+glo_batch = []
+glo_batch_limit = 20
+
+
 class MqttSender:
     def __init__(self, config: dict):
-        self.batch = []
-        self.limit = 5
         self.config = config
         self.counter_lock = threading.Lock()
         self.pub_event = threading.Event()
@@ -44,17 +47,23 @@ class MqttSender:
         }
         ```
 
+        This function adds a "timestamp_" item in the dict automatically.
+        The "timestamp_" item is for internal use. It does not go in InfluxDB.
+        The value is a UNIX timestamp as "float".
+
         `cfg` - Device configuration.
         """
         
         if self.topic is None:
             raise Exception("MQTT Topic must not be None. Did you forget to set it when creating a new class?")
+        
+        payload["timestamp_"] = datetime.datetime.now().timestamp()
 
         mqtt_msg = (self.topic, json.dumps(payload), 0, True) # Topic, payload, QOS, Retained
         with self.counter_lock:
-            self.batch.append(mqtt_msg)
+            glo_batch.append(mqtt_msg)
 
-        if len(self.batch) >= self.limit:
+        if len(glo_batch) >= glo_batch_limit:
             self.on_flush()
 
 
@@ -70,8 +79,8 @@ class MqttSender:
 
             local_batch = []
             with self.counter_lock:
-                local_batch = self.batch.copy()
-                self.batch.clear()
+                local_batch = glo_batch.copy()
+                glo_batch.clear()
 
             publish.multiple(
                 local_batch, 
@@ -92,15 +101,31 @@ def build_payload(cfg: dict, data: dict, field: str):
         "simulated": cfg["simulated"],
         "runs_on": cfg["runs_on"],
         "name": cfg["name"],
-        "value": data[field] 
+        "value": data[field],
+        "value_type": "int"|"float"|"bool"|"string"
     } 
     ```
     """
+
+    def type_hint(val):
+        if isinstance(val, int):
+            return "int"
+        elif isinstance(val, float):
+            return "float"
+        elif isinstance(val, bool):
+            return "bool"
+        elif isinstance(val, str):
+            return "string"
+        elif isinstance(val, []):
+            return "array"
+        else:
+            return "object"
     
     return {
         "measurement": field,
         "simulated": cfg["simulated"],
         "runs_on": cfg["runs_on"],
         "name": cfg["name"],
-        "value": data[field]
+        "value": data[field],
+        "value_type": type_hint(data[field])
     }

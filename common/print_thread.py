@@ -31,7 +31,7 @@ class PrintThread():
 
     def put(self, item: str, color = 'WHITE', ignore_paused = False):
         # Ignore puts while we're not listening to stdout
-        if self.is_unpaused.is_set() or ignore_paused:
+        if self.is_unpaused.is_set() or not ignore_paused:
             self.queue.put(colorizer.colorize(item, color))
 
 

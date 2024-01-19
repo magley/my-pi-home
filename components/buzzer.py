@@ -34,10 +34,12 @@ def setup(pin: int):
 
 
 def do_buzz(pin: int):
+    GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.HIGH)
 
 
 def stop_buzz(pin: int):
+    GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.LOW)
 
 

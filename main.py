@@ -1,36 +1,35 @@
 from common.config import load_configs
 import argparse
 import typing
-from common.app import AppType, App
+from common.app import App
 from components.dht import DHT_Mqtt
+from components.lcd import LCD_Mqtt
 from components.pir import PIR_Mqtt
 from components.uds import UDS_Mqtt
 from components.mds import MDS_Mqtt
 from components.mbkp import MBKP_Mqtt
 from components.buzzer import Buzzer_Mqtt
 from components.led import LED_Mqtt
-
+from components.gyro import Gyro_Mqtt, debug_shake
+from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm, websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer, on_GSG_motion_add_userdata, on_GSG_motion_check_for_alarm
 
 class Args(typing.NamedTuple):
     configs_path: str
-    app_type: AppType
+    pi: int
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--configs-path', default='data/configs.json')
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('--gui', action='store_const', dest='app_type', const='gui', default='gui')
-    group.add_argument('--cli', action='store_const', dest='app_type', const='cli')
+    parser.add_argument('--pi')
     args = parser.parse_args()
-    app_type = AppType.CLI if args.app_type == 'cli' else AppType.GUI
-    return Args(args.configs_path, app_type)
+    return Args(args.configs_path, args.pi)
 
 
 def main():
     args = parse_args()
     configs = load_configs(args.configs_path)
-    app = App(args.app_type, configs)
+    app = App(configs, args.pi)
 
     dht_mqtt = DHT_Mqtt(configs)
     pir_mqtt = PIR_Mqtt(configs)
@@ -39,14 +38,47 @@ def main():
     mbkp_mqtt = MBKP_Mqtt(configs)
     buzzer_mqtt = Buzzer_Mqtt(configs)
     led_mqtt = LED_Mqtt(configs)
+    lcd_mqtt = LCD_Mqtt(configs)
+    gyro_mqtt = Gyro_Mqtt(configs)
 
     app.add_on_read_func(dht_mqtt.put)
     app.add_on_read_func(pir_mqtt.put)
     app.add_on_read_func(uds_mqtt.put)
     app.add_on_read_func(mds_mqtt.put)
     app.add_on_read_func(mbkp_mqtt.put)
+    app.add_on_read_func(gyro_mqtt.put)
     app.add_on_event_func('buzzer', buzzer_mqtt.put)
     app.add_on_event_func('led', led_mqtt.put)
+    app.add_on_event_func('lcd', lcd_mqtt.put)
+
+
+    # [7]
+    app.add_on_read_func(read_GDHT_to_GLCD(app))
+    # [1]
+    app.add_on_read_func(on_DPIR_movement_turn_on_DL_for10s(app))
+    # [2]
+    app.add_on_read_func(on_DUS_add_userdata(app))
+    app.add_on_read_func(on_DPIR_movement_detect_person_from_DUS(app))
+    # [5]
+    app.add_on_read_func(on_PIR_when_no_people_alarm(app))
+    # [6]
+    # ---- vvvv DEBUG ONLY vvvv -------------------------------------
+    #
+    def debug_event_callback_gsg_shake(device_cfg, data, event):
+        if device_cfg['type'] != 'gyro':
+            return
+        debug_shake()
+    app.add_on_event_func('gyro', debug_event_callback_gsg_shake)
+    #                 
+    # ---- ^^^^ DEBUG ONLY ^^^^ -------------------------------------
+    app.add_on_read_func(on_GSG_motion_add_userdata(app))
+    app.add_on_read_func(on_GSG_motion_check_for_alarm(app))
+
+
+    websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app)
+
+
+
     app.run()
 
 if __name__ == '__main__':

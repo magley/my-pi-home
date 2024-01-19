@@ -36,7 +36,7 @@ def setup(pin: int):
 
 
 def read_sim():
-    return _reading(random.randint(25, 30), random.randint(30, 50))
+    return _reading(random.uniform(25, 30), random.uniform(30, 50))
 
 
 def read_real(pin: int):
