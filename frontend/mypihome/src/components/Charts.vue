@@ -44,4 +44,8 @@
 
 <!-- B4SD -->
 <iframe src="http://localhost:3000/d-solo/b240d08b-fc18-4bf9-a143-23f2348240fa/d4s7?orgId=1&from=1705749771329&to=1705771371329&panelId=1" width="450" height="200" frameborder="0"></iframe>
+
+<!-- BRGB -->
+<iframe src="http://localhost:3000/d-solo/a06505f1-0f0e-4fd0-8d25-6c51417d0aca/rgb?orgId=1&from=1705752639460&to=1705774239461&panelId=1" width="450" height="200" frameborder="0"></iframe>
+
 </template>

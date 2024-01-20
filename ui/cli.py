@@ -29,6 +29,7 @@ def _console_app(app: App):
     print("lcd-write")
     print('debug-gsg-shake')
     print('d4s7-time')
+    print('rgb-color')
     print('-' * 30)
     print('Enter command:', end='')
     
@@ -49,6 +50,9 @@ def _console_app(app: App):
     elif i == 'd4s7-time':
         current_time = datetime.now().strftime('%H:%M:%S')
         app.d4s7_write_text(current_time)
+    elif i == 'rgb-color':
+        c = _input_rgb_color()
+        app.rgb_color(c)
     elif i ==  'listen':
         app.print_thread.set_unpaused()
         try:
@@ -62,3 +66,12 @@ def _console_app(app: App):
         print("Unknown command")
 
     return False
+
+
+def _input_rgb_color():
+    while True:
+        s = input('Enter color: ')
+        if len(s) != 3 or (s[0] != '0' and s[0] != '1') or (s[1] != '0' and s[1] != '1') or (s[2] != '0' and s[2] != '1'):
+            print('Incorrect color. Format is (0|1)(0|1)(0|1)\nExample colors: "101", "110", "001"')
+            continue
+        return s

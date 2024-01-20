@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 import common.colorizer as colorizer
 
 
-from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd, gyro, d4s7
+from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd, gyro, d4s7, rgb
 
 
 class App:
@@ -135,6 +135,12 @@ class App:
                         dot_pin = cfg['pins'][7]
                         d4s7.get_set_digits(cfg)(payload, segment_pins, digit_pins, dot_pin)
                         self.invoke_event_funcs(cfg, {"d4s7": payload}, "d4s7")
+                    elif type == MyPiEventType.RGB_COLOR:
+                        red_pin = cfg['pins'][0]
+                        green_pin = cfg['pins'][1]
+                        blue_pin = cfg['pins'][2]
+                        rgb.get_set_color(cfg)(payload, red_pin, green_pin, blue_pin)
+                        self.invoke_event_funcs(cfg, {"rgb": payload}, "rgb")
                     else:
                         raise Exception(f'Unimplemented Event type: {type}')
                     
@@ -185,6 +191,10 @@ class App:
         self.event.set_d4s7_event(self.get_device_by_code('B4SD'), text)
 
 
+    def rgb_color(self, color: str):
+        self.event.set_rgb_event(self.get_device_by_code('BRGB'), color)
+
+
     def setup_devices(self):
         GPIO.setmode(GPIO.BCM)
 
@@ -219,6 +229,11 @@ class App:
                 segment_pins = device_cfg['pins'][:8]
                 digit_pins = device_cfg['pins'][8:]
                 d4s7.setup(segment_pins, digit_pins, device_cfg['simulated'])
+            elif device_cfg['type'] == 'rgb':
+                red_pin = device_cfg['pins'][0]
+                green_pin = device_cfg['pins'][1]
+                blue_pin = device_cfg['pins'][2]
+                rgb.setup(red_pin, green_pin, blue_pin, device_cfg['simulated'])
             else:
                 raise Exception(f'Could not setup device for type {device_cfg["type"]}.\nDid you forget to include an else-if?')
 
@@ -270,6 +285,8 @@ class App:
             elif device_cfg['type'] == 'gyro':
                 start_reader(device_cfg, gyro.get_reader_func)
             elif device_cfg['type'] == 'd4s7':
+                pass # Actuator doesn't have a reader.
+            elif device_cfg['type'] == 'rgb':
                 pass # Actuator doesn't have a reader.
             else:
                 raise Exception(f'Could not start device runner for type {device_cfg["type"]}.\nDid you forget to include an else-if?')

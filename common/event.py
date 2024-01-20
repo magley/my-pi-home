@@ -10,7 +10,8 @@ class MyPiEventType(Enum):
     LED_OFF = auto(),
     LCD_WRITE = auto(),
     DEBUG_GSG_SHAKE = auto(),
-    D4S7_WRITE = auto()
+    D4S7_WRITE = auto(),
+    RGB_COLOR = auto()
 
 
 class MyPiEvent():
@@ -75,6 +76,13 @@ class MyPiEvent():
         self.payload = text
         self.event.set()
     
+    
+    def set_rgb_event(self, cfg: dict, color: str):
+        self.type = MyPiEventType.RGB_COLOR
+        self.cfg = cfg
+        self.payload = color
+        self.event.set()
+
 
     def consume(self):
         """

@@ -167,6 +167,14 @@
             "simulated": true,
             "read_interval": 1.0,
             "runs_on": "PI3"
+        },
+        {
+            "name": "BRGB",
+            "type": "rgb",
+            "pins": [12, 13, 19],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI3"
         }
     ]
 }
