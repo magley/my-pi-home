@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 9,
+  "id": 11,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -86,7 +86,7 @@
           "refId": "A"
         }
       ],
-      "title": "Panel Title",
+      "title": "GLCD",
       "type": "table"
     }
   ],
@@ -104,6 +104,6 @@
   "timezone": "",
   "title": "LCD",
   "uid": "cc6c338f-6e92-4bcd-a4d0-562f1480c24f",
-  "version": 4,
+  "version": 2,
   "weekStart": ""
 }
