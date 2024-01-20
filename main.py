@@ -11,6 +11,7 @@ from components.mbkp import MBKP_Mqtt
 from components.buzzer import Buzzer_Mqtt
 from components.led import LED_Mqtt
 from components.gyro import Gyro_Mqtt, debug_shake
+from components.d4s7 import D4S7_Mqtt
 from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm, websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer, on_GSG_motion_add_userdata, on_GSG_motion_check_for_alarm
 
 class Args(typing.NamedTuple):
@@ -40,6 +41,7 @@ def main():
     led_mqtt = LED_Mqtt(configs)
     lcd_mqtt = LCD_Mqtt(configs)
     gyro_mqtt = Gyro_Mqtt(configs)
+    d4s7_mqtt = D4S7_Mqtt(configs)
 
     app.add_on_read_func(dht_mqtt.put)
     app.add_on_read_func(pir_mqtt.put)
@@ -50,6 +52,7 @@ def main():
     app.add_on_event_func('buzzer', buzzer_mqtt.put)
     app.add_on_event_func('led', led_mqtt.put)
     app.add_on_event_func('lcd', lcd_mqtt.put)
+    app.add_on_event_func('d4s7', d4s7_mqtt.put)
 
 
     # [7]

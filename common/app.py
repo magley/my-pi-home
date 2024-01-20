@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 import common.colorizer as colorizer
 
 
-from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd, gyro
+from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd, gyro, d4s7
 
 
 class App:
@@ -129,6 +129,12 @@ class App:
                     elif type == MyPiEventType.DEBUG_GSG_SHAKE:
                         gyro.debug_shake()
                         self.invoke_event_funcs(cfg, {"gyro": payload}, "gyro")
+                    elif type == MyPiEventType.D4S7_WRITE:
+                        segment_pins = cfg['pins'][:8]
+                        digit_pins = cfg['pins'][8:]
+                        dot_pin = cfg['pins'][7]
+                        d4s7.get_set_digits(cfg)(payload, segment_pins, digit_pins, dot_pin)
+                        self.invoke_event_funcs(cfg, {"d4s7": payload}, "d4s7")
                     else:
                         raise Exception(f'Unimplemented Event type: {type}')
                     
@@ -175,6 +181,10 @@ class App:
         self.event.set_debug_gsg_shake_event(self.get_device_by_code('GSG'))
 
 
+    def d4s7_write_text(self, text: str):
+        self.event.set_d4s7_event(self.get_device_by_code('B4SD'), text)
+
+
     def setup_devices(self):
         GPIO.setmode(GPIO.BCM)
 
@@ -205,6 +215,10 @@ class App:
                 lcd.setup(device_cfg['simulated']) # TODO: Pins?
             elif device_cfg['type'] == 'gyro':
                 gyro.setup(device_cfg['simulated']) # TODO: Pins?
+            elif device_cfg['type'] == 'd4s7':
+                segment_pins = device_cfg['pins'][:8]
+                digit_pins = device_cfg['pins'][8:]
+                d4s7.setup(segment_pins, digit_pins, device_cfg['simulated'])
             else:
                 raise Exception(f'Could not setup device for type {device_cfg["type"]}.\nDid you forget to include an else-if?')
 
@@ -255,5 +269,7 @@ class App:
                 pass # Actuator doesn't have a reader.
             elif device_cfg['type'] == 'gyro':
                 start_reader(device_cfg, gyro.get_reader_func)
+            elif device_cfg['type'] == 'd4s7':
+                pass # Actuator doesn't have a reader.
             else:
                 raise Exception(f'Could not start device runner for type {device_cfg["type"]}.\nDid you forget to include an else-if?')

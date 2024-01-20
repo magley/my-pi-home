@@ -51,6 +51,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("iot/led")
     client.subscribe("iot/lcd")
     client.subscribe("iot/gyro")
+    client.subscribe("iot/d4s7")
 
 def on_message(client, userdata, msg):
     d = json.loads(msg.payload.decode('utf-8'))

@@ -41,4 +41,7 @@
 
 <!-- DUS1 -->
 <iframe src="http://localhost:3000/d-solo/c501920a-ea78-4a7e-ab0e-7df6ea032def/uds?orgId=1&from=1704547972221&to=1704566295304&panelId=1" width="450" height="200" frameborder="0"></iframe>
+
+<!-- B4SD -->
+<iframe src="http://localhost:3000/d-solo/b240d08b-fc18-4bf9-a143-23f2348240fa/d4s7?orgId=1&from=1705749771329&to=1705771371329&panelId=1" width="450" height="200" frameborder="0"></iframe>
 </template>

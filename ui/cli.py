@@ -1,5 +1,6 @@
 from common.app import App
 import time
+from datetime import datetime
 
 
 def console_app(app: App):
@@ -27,6 +28,7 @@ def _console_app(app: App):
     print("door-light-off")
     print("lcd-write")
     print('debug-gsg-shake')
+    print('d4s7-time')
     print('-' * 30)
     print('Enter command:', end='')
     
@@ -44,6 +46,9 @@ def _console_app(app: App):
         app.lcd_write_text(s)
     elif i == 'debug-gsg-shake':
         app.gsg_debug_shake()
+    elif i == 'd4s7-time':
+        current_time = datetime.now().strftime('%H:%M:%S')
+        app.d4s7_write_text(current_time)
     elif i ==  'listen':
         app.print_thread.set_unpaused()
         try:

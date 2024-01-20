@@ -159,6 +159,14 @@
             "simulated": true,
             "read_interval": 1.0,
             "runs_on": "PI2"
+        },
+        {
+            "name": "B4SD",
+            "type": "d4s7",
+            "pins": [11,4,23,8,7,10,18,  25,    22,27,17,24],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI3"
         }
     ]
 }
