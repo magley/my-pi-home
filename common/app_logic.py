@@ -237,3 +237,20 @@ def on_GSG_motion_check_for_alarm(app: App):
             _post(app, {'alarm': True}, '/alarm')
 
     return lambda cfg, data: _on_GSG_motion_check_for_alarm(app, cfg, data)
+
+
+# [8]
+def periodically_write_current_time_to_B4SD(app: App):
+    """
+    Usage
+    -----
+    Call it once on app startup, the function will start a daemon thread.
+    """
+    def update_time():
+        sleep_time = 1
+        while True:
+            cur_time = datetime.datetime.now().strftime('%H:%M:%S')
+            app.b4sd_write_text(cur_time)
+            time.sleep(sleep_time)
+    t = threading.Thread(target=update_time, daemon=True)
+    t.start()

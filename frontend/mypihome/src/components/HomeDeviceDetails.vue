@@ -8,6 +8,7 @@ import DMS from '@/components/device-details/DMS.vue';
 import Buzzer from '@/components/device-details/Buzzer.vue';
 import LED from '@/components/device-details/LED.vue';
 import LCD from '@/components/device-details/LCD.vue';
+import D4S7 from './device-details/D4S7.vue';
 
 
 const props = defineProps({
@@ -17,7 +18,6 @@ const props = defineProps({
 </script>
 
 <template>
-
 <template v-if="device.temperature != undefined">
     <DHT :device="device" />
 </template>
@@ -52,6 +52,10 @@ const props = defineProps({
 
 <template v-else-if="device.lcd != undefined">
     <LCD :device="device" />
+</template>
+
+<template v-else-if="device.d4s7 != undefined">
+    <D4S7 :device="device" />
 </template>
 
 <!-- Else-->
