@@ -75,6 +75,72 @@ def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
     thread = threading.Thread(target=ws_code_running_in_background_thread, daemon=True)
     thread.start()
 
+
+# [9]
+def start_threads_for_wakeup(app: App):
+    """
+    Usage
+    -----
+    Call it once on app startup. Will start threads for websocket and buzzing
+    """
+    def ws_code_running_in_background_thread():
+        def on_open(ws):
+            pass
+
+        def on_close(ws, close_status_code, close_msg):
+            pass
+
+        def on_error(ws, error):
+            print(error)
+                
+        def on_message(ws, message):
+            """
+            message can be either { "wakeup": wakeup } or { "is_wakeup_active": is_wakeup_active }
+            """
+            msg = json.loads(message)
+            with app.userdata_lock:
+                wakeup = msg.get('wakeup')
+                if wakeup is not None:
+                    app.userdata['wakeup'] = wakeup
+                
+                is_wakeup_active = msg.get('is_wakeup_active')
+                if is_wakeup_active is not None:
+                    if is_wakeup_active:
+                        app.bedroom_buzzer_on()
+                    else:
+                        app.bedroom_buzzer_off()
+
+        ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/wakeup",
+                            on_open=on_open,
+                            on_close=on_close,
+                            on_message=on_message,
+                            on_error=on_error)   
+        ws.run_forever()
+
+    thread = threading.Thread(target=ws_code_running_in_background_thread, daemon=True)
+    thread.start()
+
+    def periodically_check_if_wakeup_is_active():
+        while True:
+            wakeup = ''
+            with app.userdata_lock:
+                wakeup = app.userdata.get('wakeup')
+                if wakeup is None:
+                    app.userdata['wakeup'] = ''
+                    continue
+            cur_time = datetime.datetime.now().strftime('%H:%M')
+            if cur_time == wakeup:
+                _post(app, {"is_wakeup_active": True}, "is_wakeup_active")
+                # Sleep a minute (plus few seconds for paranoia) so we don't trigger the same alarm again
+                time.sleep(62)
+                continue
+            time.sleep(2)
+
+
+    thread = threading.Thread(target=periodically_check_if_wakeup_is_active, daemon=True)
+    thread.start()
+
+
 # [7]
 def read_GDHT_to_GLCD(app: App):
     def _read_GDHT_to_GLCD(app: App, cfg: dict, data: dict):

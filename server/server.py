@@ -70,6 +70,7 @@ client.loop_start()
 
 state = State()
 glo_ws_alarms = [] # List of websocket connections for the '/alarm' endpoint.
+glo_ws_wakeup = [] # List of websocket connections for the '/wakeup' endpoint.
 
 
 def _update_device_state(d: dict):
@@ -109,6 +110,26 @@ def _publish_alarm_to_ws(is_alarm: bool):
             glo_ws_alarms.remove(ws)
 
 
+def _publish_wakeup_to_ws(wakeup: str):
+    glo_ws_wakeup_copy = glo_ws_wakeup.copy()
+    for ws in glo_ws_wakeup_copy:
+        try:
+            data = { "wakeup": wakeup }
+            ws.send(json.dumps(data))
+        except Exception:
+            glo_ws_wakeup.remove(ws)
+
+
+def _publish_is_wakeup_active_to_ws(is_wakeup_active: bool):
+    glo_ws_wakeup_copy = glo_ws_wakeup.copy()
+    for ws in glo_ws_wakeup_copy:
+        try:
+            data = { "is_wakeup_active": is_wakeup_active }
+            ws.send(json.dumps(data))
+        except Exception:
+            glo_ws_wakeup.remove(ws)
+
+
 def _set_alarm(is_alarm: bool):
     """
     Set the alarm to True, publish through websocket, send value to InfluxDB.
@@ -127,6 +148,16 @@ def _set_alarm(is_alarm: bool):
 
     except Exception:
         print("Error")
+
+
+def _set_wakeup(wakeup: str):
+    state.set_wakeup(wakeup)
+    _publish_wakeup_to_ws(wakeup)
+
+
+def _set_is_wakeup_active(is_wakeup_active: bool):
+    state.set_is_wakeup_active(is_wakeup_active)
+    _publish_is_wakeup_active_to_ws(is_wakeup_active)
 
 
 @app.route("/people", methods = ['GET', 'POST'])
@@ -155,6 +186,28 @@ def alarm():
             _set_alarm(is_alarm)
         return ""
     
+
+@app.route("/wakeup", methods = ['GET', 'POST'])
+def wakeup():
+    if request.method == 'GET':
+        return { "wakeup": state.wakeup }
+    elif request.method == 'POST':
+        wakeup = request.json['wakeup']
+        if state.wakeup != wakeup:
+            _set_wakeup(wakeup)
+        return ""
+
+
+@app.route("/is_wakeup_active", methods = ['GET', 'POST'])
+def is_wakeup_active():
+    if request.method == 'GET':
+        return { "is_wakeup_active": state.is_wakeup_active }
+    elif request.method == 'POST':
+        is_wakeup_active = request.json['is_wakeup_active']
+        if state.is_wakeup_active != is_wakeup_active:
+            _set_is_wakeup_active(is_wakeup_active)
+        return ""
+
 
 @app.route("/rpir", methods = ['POST'])
 def on_rpir_motion_detected():
@@ -186,6 +239,19 @@ def ws_alarm(ws):
         time.sleep(10)
 
     glo_ws_alarms.remove(ws)
+
+
+@sock.route("/ws/wakeup")
+def ws_wakeup(ws):
+    global glo_ws_wakeup
+    glo_ws_wakeup.append(ws)
+
+    if state.wakeup:
+        _publish_wakeup_to_ws(state.wakeup)
+    if state.is_wakeup_active:
+        _publish_is_wakeup_active_to_ws(state.is_wakeup_active)
+    while True:
+        time.sleep(10)
 
 
 @sock.route("/ws/state")

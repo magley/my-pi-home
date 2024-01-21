@@ -2,6 +2,8 @@ class State(object):
     def __init__(self):
         self._number_of_people = 0
         self._alarm = False
+        self._wakeup = ""
+        self._is_wakeup_active = False
 
         # Each key is device code ('RDHT1', 'DS1', ...)
         # Value is a python dict containing all relevant data.
@@ -19,6 +21,12 @@ class State(object):
 
     def set_alarm(self, is_alarm_active: bool):
         self._alarm = is_alarm_active
+
+    def set_wakeup(self, wakeup: str):
+        self._wakeup = wakeup
+
+    def set_is_wakeup_active(self, is_wakeup_active: bool):
+        self._is_wakeup_active = is_wakeup_active
 
     def update_device_state(self, single_device_state_dict: dict):
         """
@@ -81,3 +89,11 @@ class State(object):
     @property
     def alarm(self):
         return self._alarm
+    
+    @property
+    def wakeup(self):
+        return self._wakeup
+
+    @property
+    def is_wakeup_active(self):
+        return self._is_wakeup_active
