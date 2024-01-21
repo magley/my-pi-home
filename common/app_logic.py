@@ -58,12 +58,17 @@ def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
         def on_message(ws, message):
             msg = json.loads(message)
             is_alarm = msg['alarm']
+            with app.userdata_lock:
+                app.userdata['alarm'] = is_alarm
             if is_alarm:
                 app.door_buzzer_on()
                 app.bedroom_buzzer_on()
             else:
                 app.door_buzzer_off()
-                app.bedroom_buzzer_off()
+                with app.userdata_lock:
+                    # Only disable BB if the wakeup timer isn't currently active
+                    if not app.userdata.get('is_wakeup_active'):
+                        app.bedroom_buzzer_off()
 
         ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/alarm",
                             on_open=on_open,
@@ -98,17 +103,22 @@ def start_threads_for_wakeup(app: App):
             message can be either { "wakeup": wakeup } or { "is_wakeup_active": is_wakeup_active }
             """
             msg = json.loads(message)
-            with app.userdata_lock:
-                wakeup = msg.get('wakeup')
-                if wakeup is not None:
+            wakeup = msg.get('wakeup')
+            if wakeup is not None:
+                with app.userdata_lock:
                     app.userdata['wakeup'] = wakeup
                 
-                is_wakeup_active = msg.get('is_wakeup_active')
-                if is_wakeup_active is not None:
-                    if is_wakeup_active:
-                        app.bedroom_buzzer_on()
-                    else:
-                        app.bedroom_buzzer_off()
+            is_wakeup_active = msg.get('is_wakeup_active')
+            if is_wakeup_active is not None:
+                with app.userdata_lock:
+                    app.userdata['is_wakeup_active'] = is_wakeup_active
+                if is_wakeup_active:
+                    app.bedroom_buzzer_on()    
+                # Only disable BB if the alarm isn't currently active
+                else:
+                    with app.userdata_lock:
+                        if not app.userdata.get('alarm'):
+                            app.bedroom_buzzer_off()
 
         ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/wakeup",
                             on_open=on_open,
