@@ -70,3 +70,22 @@ def set_digits(text: str, segments: list[int], digits: list[int], dot_pin: int):
 
 def set_digits_simulated(text: str, segments: list[int], digits: list[int], dot_pin: int):
     pass
+
+
+def get_blank_display(cfg: dict):
+    if cfg['simulated']:
+        return set_blank_display_simulated
+    return set_blank_display
+
+
+def set_blank_display(segments: list[int], digits: list[int]):
+    for digit in range(4):
+        for loop in range(0, 7):
+            GPIO.output(segments[loop], 0)
+        GPIO.output(digits[digit], 0)
+        time.sleep(0.001)
+        GPIO.output(digits[digit], 1)
+
+
+def set_blank_display_simulated(segments: list[int], digits: list[int]):
+    pass

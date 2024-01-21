@@ -135,6 +135,13 @@ class App:
                         dot_pin = cfg['pins'][7]
                         d4s7.get_set_digits(cfg)(payload, segment_pins, digit_pins, dot_pin)
                         self.invoke_event_funcs(cfg, {"d4s7": payload}, "d4s7")
+                    elif type == MyPiEventType.D4S7_BLANK:
+                        segment_pins = cfg['pins'][:8]
+                        digit_pins = cfg['pins'][8:]
+                        d4s7.get_blank_display(cfg)(segment_pins, digit_pins)
+                        # This event is only used when blinking D4S7, it has no payload
+                        # and shouldn't invoke event funcs
+                        # self.invoke_event_funcs(cfg, {"d4s7": payload}, "d4s7")
                     elif type == MyPiEventType.RGB_COLOR:
                         red_pin = cfg['pins'][0]
                         green_pin = cfg['pins'][1]
@@ -196,7 +203,11 @@ class App:
 
 
     def b4sd_write_text(self, text: str):
-        self.event.set_d4s7_event(self.get_device_by_code('B4SD'), text)
+        self.event.set_d4s7_write_event(self.get_device_by_code('B4SD'), text)
+
+
+    def b4sd_blank(self):
+        self.event.set_d4s7_blank_event(self.get_device_by_code('B4SD'))
 
 
     def rgb_color(self, color: str):

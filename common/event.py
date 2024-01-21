@@ -11,6 +11,7 @@ class MyPiEventType(Enum):
     LCD_WRITE = auto(),
     DEBUG_GSG_SHAKE = auto(),
     D4S7_WRITE = auto(),
+    D4S7_BLANK = auto(),
     RGB_COLOR = auto()
 
 
@@ -78,13 +79,21 @@ class MyPiEvent():
         self.event.set()
     
     
-    def set_d4s7_event(self, cfg: dict, text: str):
+    def set_d4s7_write_event(self, cfg: dict, text: str):
         self.payload_access_lock.acquire()
         self.type = MyPiEventType.D4S7_WRITE
         self.cfg = cfg
         self.payload = text
         self.event.set()
     
+
+    def set_d4s7_blank_event(self, cfg: dict):
+        self.payload_access_lock.acquire()
+        self.type = MyPiEventType.D4S7_BLANK
+        self.cfg = cfg
+        self.payload = ''
+        self.event.set()
+
     
     def set_rgb_event(self, cfg: dict, color: str):
         self.payload_access_lock.acquire()

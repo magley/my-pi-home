@@ -315,8 +315,8 @@ def on_GSG_motion_check_for_alarm(app: App):
     return lambda cfg, data: _on_GSG_motion_check_for_alarm(app, cfg, data)
 
 
-# [8]
-def periodically_write_current_time_to_B4SD(app: App):
+# [8] [9]
+def periodically_write_current_time_to_B4SD_and_blink_if_wakeup_active(app: App):
     """
     Usage
     -----
@@ -325,8 +325,13 @@ def periodically_write_current_time_to_B4SD(app: App):
     def update_time():
         sleep_time = 1
         while True:
+            remaining_sleep_time = sleep_time
+            if app.userdata.get('is_wakeup_active'):
+                remaining_sleep_time -= 0.5
+                app.b4sd_blank()
+                time.sleep(remaining_sleep_time)
             cur_time = datetime.datetime.now().strftime('%H:%M:%S')
             app.b4sd_write_text(cur_time)
-            time.sleep(sleep_time)
+            time.sleep(remaining_sleep_time)
     t = threading.Thread(target=update_time, daemon=True)
     t.start()
