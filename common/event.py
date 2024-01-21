@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from threading import Event
+from threading import Event, Lock
 
 
 class MyPiEventType(Enum):
@@ -32,6 +32,9 @@ class MyPiEvent():
         self.type: MyPiEventType = MyPiEventType.EMPTY
         self.cfg = {} # Configuration for the device whose event is being fired.
         self.payload = None # Payload for the event, if any.
+        # MyPiEvent instance is accessed from multiple threads, so we need to ensure there aren't any
+        # data races when setting events.
+        self.payload_access_lock = Lock()
         self.event = Event()
 
 
@@ -41,23 +44,27 @@ class MyPiEvent():
 
         See also the higher-level API `set_*` functions for specific event types.  
         """
+        self.payload_access_lock.acquire()
         self.type = type
         self.event.set()
 
 
     def set_buzz_event(self, cfg: dict, do_buzz: bool):
+        self.payload_access_lock.acquire()
         self.type = MyPiEventType.BUZZ if do_buzz else MyPiEventType.STOP_BUZZ
         self.cfg = cfg
         self.event.set()
 
 
     def set_led_event(self, cfg: dict, turn_on: bool):
+        self.payload_access_lock.acquire()
         self.type = MyPiEventType.LED_ON if turn_on else MyPiEventType.LED_OFF
         self.cfg = cfg
         self.event.set()
 
 
     def set_lcd_event(self, cfg: dict, text_to_write: str):
+        self.payload_access_lock.acquire()
         self.type = MyPiEventType.LCD_WRITE
         self.cfg = cfg
         self.payload = text_to_write
@@ -65,12 +72,14 @@ class MyPiEvent():
 
 
     def set_debug_gsg_shake_event(self, cfg: dict):
+        self.payload_access_lock.acquire()
         self.type = MyPiEventType.DEBUG_GSG_SHAKE
         self.cfg = cfg
         self.event.set()
     
     
     def set_d4s7_event(self, cfg: dict, text: str):
+        self.payload_access_lock.acquire()
         self.type = MyPiEventType.D4S7_WRITE
         self.cfg = cfg
         self.payload = text
@@ -78,6 +87,7 @@ class MyPiEvent():
     
     
     def set_rgb_event(self, cfg: dict, color: str):
+        self.payload_access_lock.acquire()
         self.type = MyPiEventType.RGB_COLOR
         self.cfg = cfg
         self.payload = color
@@ -90,6 +100,7 @@ class MyPiEvent():
         """
 
         self.event.clear()
+        self.payload_access_lock.release()
 
 
     def wait(self):
