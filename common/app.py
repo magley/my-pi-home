@@ -163,12 +163,20 @@ class App:
         raise Exception(f"Could not find device:{code}")
     
 
-    def room_buzzer_on(self):
+    def door_buzzer_on(self):
         self.event.set_buzz_event(self.get_device_by_code('DB'), True)
 
 
-    def room_buzzer_off(self):
+    def door_buzzer_off(self):
         self.event.set_buzz_event(self.get_device_by_code('DB'), False)
+    
+
+    def bedroom_buzzer_on(self):
+        self.event.set_buzz_event(self.get_device_by_code('BB'), True)
+
+
+    def bedroom_buzzer_off(self):
+        self.event.set_buzz_event(self.get_device_by_code('BB'), False)
 
 
     def door_light_on(self):
@@ -187,7 +195,7 @@ class App:
         self.event.set_debug_gsg_shake_event(self.get_device_by_code('GSG'))
 
 
-    def d4s7_write_text(self, text: str):
+    def b4sd_write_text(self, text: str):
         self.event.set_d4s7_event(self.get_device_by_code('B4SD'), text)
 
 

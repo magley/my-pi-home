@@ -59,9 +59,11 @@ def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
             msg = json.loads(message)
             is_alarm = msg['alarm']
             if is_alarm:
-                app.room_buzzer_on()
+                app.door_buzzer_on()
+                app.bedroom_buzzer_on()
             else:
-                app.room_buzzer_off()
+                app.door_buzzer_off()
+                app.bedroom_buzzer_off()
 
         ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/alarm",
                             on_open=on_open,
