@@ -90,7 +90,7 @@ def _periodically_set_state_pir_to_false():
     while True:
         now = datetime.datetime.now().timestamp()
         for device_name, device in state.device_state.items():
-            if 'PIR' not in device_name:
+            if 'PIR' not in device_name and device_name != 'BIR':
                 continue
             is_stale = (now - device['timestamp_']) > staleness_threshold_seconds 
             if is_stale:
