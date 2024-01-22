@@ -57,6 +57,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     d = json.loads(msg.payload.decode('utf-8'))
     _update_device_state(d)
+    update_security_state(d)
     save_to_db(d)
 
 client = mqtt.Client()
@@ -75,6 +76,25 @@ glo_ws_wakeup = [] # List of websocket connections for the '/wakeup' endpoint.
 
 def _update_device_state(d: dict):
     state.update_device_state(d)
+
+
+# [4]
+def update_security_state(d: dict):
+    """
+    Security state starts as False, first correct PIN entry activates it.
+    After that, correctly entering the PIN deactivates the alarm.
+    """
+    if d['name'] != 'DMS':
+        return
+    keys = d['value']
+    for key in keys:
+        state.append_dms_last_4(key)
+    if state.dms_last_4.circular_equal(state.pin):
+        if state.security_active:
+            _set_alarm(False, '')
+            # state.set_security_active(False)
+        else:
+            state.set_security_active(True)
 
 
 def _periodically_set_state_pir_to_false():
@@ -266,10 +286,22 @@ def ws_state(ws):
         d = {
             "alarm": state.alarm,
             "number_of_people": state.number_of_people,
-            "device_state": state.device_state
+            "device_state": state.device_state,
+            "dms_last_4": state.dms_last_4.as_str(),
+            "dms_cur_idx": state.dms_last_4.cur_idx
         }
         ws.send(json.dumps(d))
         time.sleep(1)
+
+
+@sock.route("/ws/security")
+def ws_security(ws):
+    while True:
+        d = {
+            "security_active": state.security_active,
+        }
+        ws.send(json.dumps(d))
+        time.sleep(10)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,5 @@
+from circular_list import CircularList
+
 class State(object):
     def __init__(self):
         self._number_of_people = 0
@@ -5,6 +7,9 @@ class State(object):
         self._alarm_reason = ''
         self._wakeup = ""
         self._is_wakeup_active = False
+        self._security_active = False
+        self._pin = '1234'
+        self._dms_last_4 = CircularList(maxlen=4)
 
         # Each key is device code ('RDHT1', 'DS1', ...)
         # Value is a python dict containing all relevant data.
@@ -31,6 +36,12 @@ class State(object):
 
     def set_is_wakeup_active(self, is_wakeup_active: bool):
         self._is_wakeup_active = is_wakeup_active
+
+    def set_security_active(self, val: bool):
+        self._security_active = val
+
+    def append_dms_last_4(self, val: str):
+        self._dms_last_4.append(val)
 
     def update_device_state(self, single_device_state_dict: dict):
         """
@@ -105,3 +116,15 @@ class State(object):
     @property
     def is_wakeup_active(self):
         return self._is_wakeup_active
+
+    @property
+    def security_active(self):
+        return self._security_active
+
+    @property
+    def pin(self):
+        return self._pin
+
+    @property
+    def dms_last_4(self):
+        return self._dms_last_4

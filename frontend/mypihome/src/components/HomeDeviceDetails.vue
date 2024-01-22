@@ -12,7 +12,8 @@ import D4S7 from './device-details/D4S7.vue';
 
 
 const props = defineProps({
-    device: Object
+    device: Object,
+    homeState: Object
 });
 
 </script>
@@ -39,7 +40,7 @@ const props = defineProps({
 </template>
 
 <template v-else-if="device.keys != undefined">
-    <DMS :device="device" />
+    <DMS :device="device" :dms_last_4="String(homeState.dms_last_4)" :cur_idx="homeState.dms_cur_idx" />
 </template>
 
 <template v-else-if="device.buzz != undefined">
