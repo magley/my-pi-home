@@ -277,6 +277,18 @@ def on_PIR_when_no_people_alarm(app: App):
 
     return lambda cfg, data: _on_PIR_when_no_people_alarm(app, cfg, data)
 
+# [4]
+def on_MDS_when_security_off_alarm(app: App):
+    def _on_MDS_when_security_off_alarm(app: App, cfg: dict, data: dict):
+        if cfg['name'] not in ['DS1', 'DS2']:
+            return
+        
+        if data['open'] == 1:
+            _post(app, {}, "mds")
+
+
+    return lambda cfg, data: _on_MDS_when_security_off_alarm(app, cfg, data)
+
 # [6] Utility
 def on_GSG_motion_add_userdata(app: App):
     """

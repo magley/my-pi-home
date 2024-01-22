@@ -80,21 +80,24 @@ def _update_device_state(d: dict):
 
 # [4]
 def update_security_state(d: dict):
-    """
-    Security state starts as False, first correct PIN entry activates it.
-    After that, correctly entering the PIN deactivates the alarm.
-    """
     if d['name'] != 'DMS':
         return
+    
     keys = d['value']
     for key in keys:
         state.append_dms_last_4(key)
+
     if state.dms_last_4.circular_equal(state.pin):
+        _set_alarm(False, '')
         if state.security_active:
-            _set_alarm(False, '')
-            # state.set_security_active(False)
+            state.set_security_active(False)
         else:
-            state.set_security_active(True)
+            threading.Thread(target=start_security_state, daemon=True).start()
+
+
+def start_security_state():
+    time.sleep(10)
+    state.set_security_active(True)
 
 
 def _periodically_set_state_pir_to_false():
@@ -243,6 +246,14 @@ def on_rpir_motion_detected():
         return ""
 
 
+@app.route("/mds", methods = ['POST'])
+def on_mds_opened():
+    if request.method == 'POST':
+        if state.security_active and not state.alarm:
+            _set_alarm(True, 'unknown')
+        return ""
+
+
 @app.route("/state")
 def get_state():
     return {
@@ -301,7 +312,7 @@ def ws_security(ws):
             "security_active": state.security_active,
         }
         ws.send(json.dumps(d))
-        time.sleep(10)
+        time.sleep(1)
 
 
 if __name__ == '__main__':

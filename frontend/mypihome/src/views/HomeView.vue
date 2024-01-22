@@ -8,6 +8,7 @@ const axiosInstance = axios.create({
 });
 
 const isAlarm = ref(false);
+const isSecurity = ref(false);
 
 const wakeupTime = ref("");
 const wakeupTimeInput = ref(null);
@@ -15,6 +16,7 @@ const isWakeupActive = ref(false);
 
 let socket;
 let socket2;
+let socket3;
 onMounted(() => {
     socket = new WebSocket("ws://127.0.0.1:5000/ws/alarm");
     socket.onmessage = function(event) {
@@ -36,6 +38,15 @@ onMounted(() => {
         }
     };
     socket2.onerror = function(error) {
+        console.error(error);
+    };
+
+    socket3 = new WebSocket("ws://127.0.0.1:5000/ws/security");
+    socket3.onmessage = function(event) {
+        const msg = JSON.parse(event.data);
+        isSecurity.value = msg.security_active;
+    };
+    socket3.onerror = function(error) {
         console.error(error);
     };
 });
@@ -75,6 +86,7 @@ const turnOffWakeup = () => {
     <p>
         Alarm: <span :class="{alarm: isAlarm}">{{ isAlarm }}</span>
         <button :disabled="!isAlarm" @click="turnOffAlarm">Deactivate</button>
+        Security: {{ isSecurity }}
     </p>
     <br/>
     <div class="wakeup">

@@ -15,7 +15,7 @@ from components.d4s7 import D4S7_Mqtt
 from components.rgb import RGB_Mqtt
 from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm, websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer, on_GSG_motion_add_userdata, on_GSG_motion_check_for_alarm
 from common.app_logic import periodically_write_current_time_to_B4SD_and_blink_if_wakeup_active, start_threads_for_wakeup
-from common.app_logic import on_MDS_open_for_five_seconds_activate_alarm
+from common.app_logic import on_MDS_open_for_five_seconds_activate_alarm, on_MDS_when_security_off_alarm
 
 class Args(typing.NamedTuple):
     configs_path: str
@@ -71,6 +71,8 @@ def main():
     app.add_on_read_func(on_MDS_open_for_five_seconds_activate_alarm(app))
     # [5]
     app.add_on_read_func(on_PIR_when_no_people_alarm(app))
+    # [4]
+    app.add_on_read_func(on_MDS_when_security_off_alarm(app))
     # [6]
     # ---- vvvv DEBUG ONLY vvvv -------------------------------------
     #
