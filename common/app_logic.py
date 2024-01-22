@@ -58,8 +58,10 @@ def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
         def on_message(ws, message):
             msg = json.loads(message)
             is_alarm = msg['alarm']
+            alarm_reason = msg['alarm_reason']
             with app.userdata_lock:
                 app.userdata['alarm'] = is_alarm
+                app.userdata['alarm_reason'] = alarm_reason
             if is_alarm:
                 app.door_buzzer_on()
                 app.bedroom_buzzer_on()
@@ -232,6 +234,36 @@ def on_DPIR_movement_detect_person_from_DUS(app: App):
             _post(app, data, "people")
 
     return lambda cfg, data: _on_DPIR_movement_detect_person_from_DUS(app, cfg, data)
+
+
+# [3]
+def on_MDS_open_for_five_seconds_activate_alarm(app: App):
+    def _on_MDS_open_for_five_seconds_activate_alarm(app: App, cfg: dict, data: dict):
+        if cfg['name'] != 'DS1' and cfg['name'] != 'DS2':
+            return
+        
+        with app.userdata_lock:
+            val = app.userdata.get(cfg['name'], {'first_open_time': None, 'last_open_time': None})
+            if data['open'] == 1:
+                if not val['first_open_time']:
+                    val['first_open_time'] = datetime.datetime.now()
+                val['last_open_time'] = datetime.datetime.now()
+                time_before_opens = (val['last_open_time'] - val['first_open_time']).seconds
+                if time_before_opens >= 5 and not app.userdata.get('alarm'):
+                    # Will set alarm to True on server, which will in turn set it to True in app
+                    # through websocket (app -> server -> app)
+                    _post(app, {'alarm': True, 'alarm_reason': cfg['name']}, 'alarm')
+            else:
+                val['first_open_time'] = None
+                # If the alarm has been previously caused by this device registering an unlocked/opened door,
+                # now that the door is locked/closed we can turn off the alarm. If the alarm has been caused
+                # by some other factor, don't turn it off.
+                if app.userdata.get('alarm') and app.userdata.get('alarm_reason', '') == cfg['name']:
+                    _post(app, {'alarm': False}, 'alarm')
+            app.userdata[cfg['name']] = val
+
+    return lambda cfg, data: _on_MDS_open_for_five_seconds_activate_alarm(app, cfg, data)
+
 
 # [5]
 def on_PIR_when_no_people_alarm(app: App):

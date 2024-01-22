@@ -100,11 +100,11 @@ def _periodically_set_state_pir_to_false():
         time.sleep(sleep_time)
 
 
-def _publish_alarm_to_ws(is_alarm: bool):
+def _publish_alarm_to_ws(is_alarm: bool, alarm_reason: str):
     glo_ws_alarms_copy = glo_ws_alarms.copy()
     for ws in glo_ws_alarms_copy:
         try:
-            data = { "alarm": is_alarm }
+            data = { "alarm": is_alarm, "alarm_reason": alarm_reason }
             ws.send(json.dumps(data))
         except Exception:
             glo_ws_alarms.remove(ws)
@@ -130,13 +130,14 @@ def _publish_is_wakeup_active_to_ws(is_wakeup_active: bool):
             glo_ws_wakeup.remove(ws)
 
 
-def _set_alarm(is_alarm: bool):
+def _set_alarm(is_alarm: bool, alarm_reason: str):
     """
     Set the alarm to True, publish through websocket, send value to InfluxDB.
     """
 
     state.set_alarm(is_alarm)
-    _publish_alarm_to_ws(is_alarm)
+    state.set_alarm_reason(alarm_reason)
+    _publish_alarm_to_ws(is_alarm, alarm_reason)
 
     # Write to influxDB.
     try:
@@ -182,8 +183,13 @@ def alarm():
         return { "alarm": state.alarm }
     elif request.method == 'POST':
         is_alarm = request.json['alarm']
-        if state.alarm != is_alarm:
-            _set_alarm(is_alarm)
+        alarm_reason = ''
+        if is_alarm == True:
+            alarm_reason = request.json.get('alarm_reason', 'unknown')
+        # NOTE: 'unknown' is treated as the highest alarm reason. The only other reason we use so far is
+        #       DS1/DS2 for unlocked doors, which are to be replaced by 'unknown' if they're currently in state.
+        if state.alarm != is_alarm or (alarm_reason == 'unknown' and (state.alarm_reason == 'DS1' or state.alarm_reason == 'DS2')):
+            _set_alarm(is_alarm, alarm_reason)
         return ""
     
 
@@ -213,7 +219,7 @@ def is_wakeup_active():
 def on_rpir_motion_detected():
     if request.method == 'POST':
         if state.number_of_people == 0 and not state.alarm:
-            _set_alarm(True)
+            _set_alarm(True, 'unknown')
         return ""
 
 
@@ -233,7 +239,7 @@ def ws_alarm(ws):
 
     # If a client connects AFTER the alarm has been set off, we want to let him know.
     if state.alarm:
-        _publish_alarm_to_ws(state.alarm)
+        _publish_alarm_to_ws(state.alarm, state.alarm_reason)
     
     while True:
         time.sleep(10)

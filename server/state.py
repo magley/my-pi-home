@@ -2,6 +2,7 @@ class State(object):
     def __init__(self):
         self._number_of_people = 0
         self._alarm = False
+        self._alarm_reason = ''
         self._wakeup = ""
         self._is_wakeup_active = False
 
@@ -21,6 +22,9 @@ class State(object):
 
     def set_alarm(self, is_alarm_active: bool):
         self._alarm = is_alarm_active
+
+    def set_alarm_reason(self, alarm_reason: str):
+        self._alarm_reason = alarm_reason
 
     def set_wakeup(self, wakeup: str):
         self._wakeup = wakeup
@@ -89,6 +93,10 @@ class State(object):
     @property
     def alarm(self):
         return self._alarm
+    
+    @property
+    def alarm_reason(self):
+        return self._alarm_reason
     
     @property
     def wakeup(self):
