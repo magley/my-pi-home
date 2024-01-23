@@ -53,6 +53,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("iot/gyro")
     client.subscribe("iot/d4s7")
     client.subscribe("iot/rgb")
+    client.subscribe("iot/ir_receiver")
 
 def on_message(client, userdata, msg):
     d = json.loads(msg.payload.decode('utf-8'))
@@ -115,7 +116,7 @@ def _periodically_set_state_pir_to_false():
     while True:
         now = datetime.datetime.now().timestamp()
         for device_name, device in state.device_state.items():
-            if 'PIR' not in device_name and device_name != 'BIR':
+            if 'PIR' not in device_name:
                 continue
             is_stale = (now - device['timestamp_']) > staleness_threshold_seconds 
             if is_stale:

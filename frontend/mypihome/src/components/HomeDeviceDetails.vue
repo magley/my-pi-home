@@ -10,6 +10,7 @@ import LED from '@/components/device-details/LED.vue';
 import LCD from '@/components/device-details/LCD.vue';
 import D4S7 from './device-details/D4S7.vue';
 import RGB from './device-details/RGB.vue';
+import IRReceiver from './device-details/IRReceiver.vue';
 
 
 const props = defineProps({
@@ -62,6 +63,10 @@ const props = defineProps({
 
 <template v-else-if="device.rgb != undefined">
     <RGB :device="device" />
+</template>
+
+<template v-else-if="device.btn != undefined">
+    <IRReceiver :device="device" />
 </template>
 
 <!-- Else-->

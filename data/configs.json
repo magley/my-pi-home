@@ -202,7 +202,7 @@
         },
         {
             "name": "BIR",
-            "type": "pir",
+            "type": "ir_receiver",
             "pins": [10],
             "simulated": true,
             "read_interval": 1.0,

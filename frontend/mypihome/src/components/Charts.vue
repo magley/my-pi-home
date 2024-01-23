@@ -78,7 +78,7 @@
 <iframe src="http://localhost:3000/d-solo/b240d08b-fc18-4bf9-a143-23f2348240fa/d4s7?orgId=1&from=1705749771329&to=1705771371329&panelId=1" width="675" height="300" frameborder="0"></iframe>
 
 <!-- BIR -->
-<iframe src="http://localhost:3000/d-solo/d1b939a4-abce-4f5f-8be3-0fb80ad7da01/pir?orgId=1&refresh=5s&from=1705776950529&to=1705777250529&panelId=7" width="675" height="300" frameborder="0"></iframe>
+<iframe src="http://localhost:3000/d-solo/d03864f6-08d3-42cb-b168-379218d1f785/ir-receiver?orgId=1&from=1706009204055&to=1706030804055&panelId=1" width="675" height="300" frameborder="0"></iframe>
 
 <!-- BRGB -->
 <iframe src="http://localhost:3000/d-solo/a06505f1-0f0e-4fd0-8d25-6c51417d0aca/rgb?orgId=1&from=1705752639460&to=1705774239461&panelId=1" width="675" height="300" frameborder="0"></iframe>
