@@ -83,38 +83,40 @@ const turnOffWakeup = () => {
 </h1>
 
 <div>
-    <p>
-        Alarm: <span :class="{alarm: isAlarm}">{{ isAlarm }}</span>
-        <button :disabled="!isAlarm" @click="turnOffAlarm">Deactivate</button>
-        Security: {{ isSecurity }}
-    </p>
-    <br/>
-    <div class="wakeup">
-        Wakeup time:
-        <template v-if="wakeupTime != ''">
-        {{ wakeupTime }}
-        </template>
-        <template v-else>None</template>
-        <br/>
-        <form @submit.prevent="() => setWakeup(wakeupTimeInput.value)" style="display: inline;">
-            <!-- Regex pattern: https://stackoverflow.com/a/7536768 -->
-            <input
-                ref="wakeupTimeInput"
-                type="text"
-                required
-                maxlength="5"
-                placeholder="00:00"
-                pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$" 
-                title="HH:MM"
-                style="width: 3rem;">
-            <input type="submit" value="Set wakeup">
-        </form>
-        <button @click="clearWakeup">Clear wakeup</button>
+    <div class="controls">
+        <p>
+            Alarm: <span :class="{alarm: isAlarm}">{{ isAlarm }}</span>
+            <button :disabled="!isAlarm" @click="turnOffAlarm">Deactivate</button>
+            <br />
+            Security: {{ isSecurity }}
+        </p>
+        <div class="wakeup">
+            Wakeup time:
+            <template v-if="wakeupTime != ''">
+            {{ wakeupTime }}
+            </template>
+            <template v-else>None</template>
+            <br/>
+            <form @submit.prevent="() => setWakeup(wakeupTimeInput.value)" style="display: inline;">
+                <!-- Regex pattern: https://stackoverflow.com/a/7536768 -->
+                <input
+                    ref="wakeupTimeInput"
+                    type="text"
+                    required
+                    maxlength="5"
+                    placeholder="00:00"
+                    pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$" 
+                    title="HH:MM"
+                    style="width: 3rem;">
+                <input type="submit" value="Set">
+            </form>
+            <button @click="clearWakeup">Clear</button>
+            <p>
+                Wakeup: <span :class="{alarm: isWakeupActive}">{{ isWakeupActive }}</span>
+                <button :disabled="!isWakeupActive" @click="turnOffWakeup">Deactivate</button>
+            </p>
+        </div>
     </div>
-    <p>
-        Wakeup: <span :class="{alarm: isWakeupActive}">{{ isWakeupActive }}</span>
-        <button :disabled="!isWakeupActive" @click="turnOffWakeup">Deactivate</button>
-    </p>
 
     <p>
         <HomeBlueprint/>
@@ -127,6 +129,12 @@ const turnOffWakeup = () => {
     background-color: red;
     font-weight: bolder;
     animation: blink 0.5s infinite;
+}
+
+.controls {
+    display: flex;
+    flex-direction: row;
+    gap: 3rem;
 }
 
 @keyframes blink {
