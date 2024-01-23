@@ -412,3 +412,28 @@ def periodically_write_current_time_to_B4SD_and_blink_if_wakeup_active(app: App)
             time.sleep(remaining_sleep_time)
     t = threading.Thread(target=update_time, daemon=True)
     t.start()
+
+
+BTN_TO_BRGB_COLOR = {
+    '1': '100', # Red
+    '2': '010', # Green
+    '3': '001', # Blue
+    '4': '110',
+    '5': '011',
+    '6': '101',
+    '7': '111', # White
+    '0': '000', # Off
+}
+
+
+# [10]
+def on_BIR_read_send_signal_to_BRGB(app: App):
+    def _on_BIR_read_send_signal_to_BRGB(app: App, cfg: dict, data: dict):
+        if cfg['name'] != 'BIR':
+            return
+        btn = data['btn']
+        color = BTN_TO_BRGB_COLOR.get(btn)
+        if color is not None:
+            app.rgb_color(color)
+
+    return lambda cfg, data: _on_BIR_read_send_signal_to_BRGB(app, cfg, data)
