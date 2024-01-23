@@ -74,6 +74,16 @@ const turnOffWakeup = () => {
     axiosInstance.post("/is_wakeup_active", {"is_wakeup_active": false})
 }
 
+const RGBColorInput = ref(null);
+const setRGBColor = (val) => {
+    axiosInstance.post("/brgb", {"rgb": val});
+    RGBColorInput.value.value = "";
+}
+
+const disableRGB = _ => {
+    setRGBColor("000");
+}
+
 </script>
 
 <template>
@@ -115,6 +125,24 @@ const turnOffWakeup = () => {
                 Wakeup: <span :class="{alarm: isWakeupActive}">{{ isWakeupActive }}</span>
                 <button :disabled="!isWakeupActive" @click="turnOffWakeup">Deactivate</button>
             </p>
+        </div>
+        <div>
+            BRGB color
+            <br />
+            <form @submit.prevent="() => setRGBColor(RGBColorInput.value)" style="display: inline;">
+                <!-- Regex pattern: https://stackoverflow.com/a/7536768 -->
+                <input
+                    ref="RGBColorInput"
+                    type="text"
+                    required
+                    maxlength="3"
+                    placeholder="101"
+                    pattern="^(0|1)(0|1)(0|1)" 
+                    title="(0|1)(0|1)(0|1)"
+                    style="width: 3rem;">
+                <input type="submit" value="Set">
+            </form>
+            <button @click="disableRGB">Disable</button>
         </div>
     </div>
 

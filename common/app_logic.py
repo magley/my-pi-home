@@ -83,6 +83,39 @@ def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
     thread.start()
 
 
+# [10]
+def websocket_brgb(app: App):
+    """
+    Usage
+    -----
+    Call it once on app startup. Will start websocket for setting BRGB values.
+    """
+    def ws_code_running_in_background_thread():
+        def on_open(ws):
+            pass
+
+        def on_close(ws, close_status_code, close_msg):
+            pass
+
+        def on_error(ws, error):
+            print(error)
+                
+        def on_message(ws, message):
+            msg = json.loads(message)
+            rgb = msg['rgb']
+            app.rgb_color(rgb)
+
+        ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/brgb",
+                            on_open=on_open,
+                            on_close=on_close,
+                            on_message=on_message,
+                            on_error=on_error)   
+        ws.run_forever()
+    
+    thread = threading.Thread(target=ws_code_running_in_background_thread, daemon=True)
+    thread.start()
+
+
 # [9]
 def start_threads_for_wakeup(app: App):
     """

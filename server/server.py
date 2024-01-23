@@ -72,6 +72,7 @@ client.loop_start()
 state = State()
 glo_ws_alarms = [] # List of websocket connections for the '/alarm' endpoint.
 glo_ws_wakeup = [] # List of websocket connections for the '/wakeup' endpoint.
+glo_ws_brgb = [] # List of websocket connections for the '/brgb' endpoint.
 
 
 def _update_device_state(d: dict):
@@ -141,6 +142,16 @@ def _publish_wakeup_to_ws(wakeup: str):
             ws.send(json.dumps(data))
         except Exception:
             glo_ws_wakeup.remove(ws)
+
+
+def _publish_brgb_to_ws(rgb: str):
+    glo_ws_brgb_copy = glo_ws_brgb.copy()
+    for ws in glo_ws_brgb_copy:
+        try:
+            data = { "rgb": rgb }
+            ws.send(json.dumps(data))
+        except Exception:
+            glo_ws_brgb.remove(ws)
 
 
 def _publish_is_wakeup_active_to_ws(is_wakeup_active: bool):
@@ -254,6 +265,14 @@ def on_mds_opened():
         return ""
 
 
+@app.route("/brgb", methods = ['POST'])
+def brgb():
+    rgb = request.json['rgb']
+    _publish_brgb_to_ws(rgb)
+    return ""
+
+
+
 @app.route("/state")
 def get_state():
     return {
@@ -276,6 +295,14 @@ def ws_alarm(ws):
         time.sleep(10)
 
     glo_ws_alarms.remove(ws)
+
+
+@sock.route("/ws/brgb")
+def ws_brgb(ws):
+    global glo_ws_brgb
+    glo_ws_brgb.append(ws)
+    while True:
+        time.sleep(10)
 
 
 @sock.route("/ws/wakeup")
