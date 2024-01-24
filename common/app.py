@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 import common.colorizer as colorizer
 
 
-from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd, gyro
+from components import buzzer, dht, led, mbkp, mds, pir, uds, lcd, gyro, d4s7, rgb, ir_receiver
 
 
 class App:
@@ -129,6 +129,25 @@ class App:
                     elif type == MyPiEventType.DEBUG_GSG_SHAKE:
                         gyro.debug_shake()
                         self.invoke_event_funcs(cfg, {"gyro": payload}, "gyro")
+                    elif type == MyPiEventType.D4S7_WRITE:
+                        segment_pins = cfg['pins'][:8]
+                        digit_pins = cfg['pins'][8:]
+                        dot_pin = cfg['pins'][7]
+                        d4s7.get_set_digits(cfg)(payload, segment_pins, digit_pins, dot_pin)
+                        self.invoke_event_funcs(cfg, {"d4s7": payload}, "d4s7")
+                    elif type == MyPiEventType.D4S7_BLANK:
+                        segment_pins = cfg['pins'][:8]
+                        digit_pins = cfg['pins'][8:]
+                        d4s7.get_blank_display(cfg)(segment_pins, digit_pins)
+                        # This event is only used when blinking D4S7, it has no payload
+                        # and shouldn't invoke event funcs
+                        # self.invoke_event_funcs(cfg, {"d4s7": payload}, "d4s7")
+                    elif type == MyPiEventType.RGB_COLOR:
+                        red_pin = cfg['pins'][0]
+                        green_pin = cfg['pins'][1]
+                        blue_pin = cfg['pins'][2]
+                        rgb.get_set_color(cfg)(payload, red_pin, green_pin, blue_pin)
+                        self.invoke_event_funcs(cfg, {"rgb": payload}, "rgb")
                     else:
                         raise Exception(f'Unimplemented Event type: {type}')
                     
@@ -151,12 +170,20 @@ class App:
         raise Exception(f"Could not find device:{code}")
     
 
-    def room_buzzer_on(self):
+    def door_buzzer_on(self):
         self.event.set_buzz_event(self.get_device_by_code('DB'), True)
 
 
-    def room_buzzer_off(self):
+    def door_buzzer_off(self):
         self.event.set_buzz_event(self.get_device_by_code('DB'), False)
+    
+
+    def bedroom_buzzer_on(self):
+        self.event.set_buzz_event(self.get_device_by_code('BB'), True)
+
+
+    def bedroom_buzzer_off(self):
+        self.event.set_buzz_event(self.get_device_by_code('BB'), False)
 
 
     def door_light_on(self):
@@ -173,6 +200,18 @@ class App:
 
     def gsg_debug_shake(self):
         self.event.set_debug_gsg_shake_event(self.get_device_by_code('GSG'))
+
+
+    def b4sd_write_text(self, text: str):
+        self.event.set_d4s7_write_event(self.get_device_by_code('B4SD'), text)
+
+
+    def b4sd_blank(self):
+        self.event.set_d4s7_blank_event(self.get_device_by_code('B4SD'))
+
+
+    def rgb_color(self, color: str):
+        self.event.set_rgb_event(self.get_device_by_code('BRGB'), color)
 
 
     def setup_devices(self):
@@ -205,6 +244,18 @@ class App:
                 lcd.setup(device_cfg['simulated']) # TODO: Pins?
             elif device_cfg['type'] == 'gyro':
                 gyro.setup(device_cfg['simulated']) # TODO: Pins?
+            elif device_cfg['type'] == 'd4s7':
+                segment_pins = device_cfg['pins'][:8]
+                digit_pins = device_cfg['pins'][8:]
+                d4s7.setup(segment_pins, digit_pins, device_cfg['simulated'])
+            elif device_cfg['type'] == 'rgb':
+                red_pin = device_cfg['pins'][0]
+                green_pin = device_cfg['pins'][1]
+                blue_pin = device_cfg['pins'][2]
+                rgb.setup(red_pin, green_pin, blue_pin, device_cfg['simulated'])
+            elif device_cfg['type'] == 'ir_receiver':
+                pin = device_cfg['pins'][0]
+                ir_receiver.setup(pin, device_cfg['simulated'])
             else:
                 raise Exception(f'Could not setup device for type {device_cfg["type"]}.\nDid you forget to include an else-if?')
 
@@ -255,5 +306,11 @@ class App:
                 pass # Actuator doesn't have a reader.
             elif device_cfg['type'] == 'gyro':
                 start_reader(device_cfg, gyro.get_reader_func)
+            elif device_cfg['type'] == 'd4s7':
+                pass # Actuator doesn't have a reader.
+            elif device_cfg['type'] == 'rgb':
+                pass # Actuator doesn't have a reader.
+            elif device_cfg['type'] == 'ir_receiver':
+                start_reader(device_cfg, ir_receiver.get_reader_func) 
             else:
                 raise Exception(f'Could not start device runner for type {device_cfg["type"]}.\nDid you forget to include an else-if?')

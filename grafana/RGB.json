@@ -18,14 +18,14 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 11,
+  "id": 20,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "d73faf59-b57b-4383-b209-a90b4d5f344f"
+        "uid": "f3699db5-478a-4aab-b472-65e0e3f0b32a"
       },
       "fieldConfig": {
         "defaults": {
@@ -58,7 +58,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 0
       },
@@ -80,13 +80,13 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "d73faf59-b57b-4383-b209-a90b4d5f344f"
+            "uid": "f3699db5-478a-4aab-b472-65e0e3f0b32a"
           },
-          "query": "from(bucket: \"iotBucket\")\r\n  |> range(start: 0)\r\n  |> filter(fn: (r) => r[\"name\"] == \"GLCD\") ",
+          "query": "from(bucket: \"iotBucket\")\r\n  |> range(start: 0)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"rgb\")",
           "refId": "A"
         }
       ],
-      "title": "GLCD",
+      "title": "BRGB",
       "type": "table"
     }
   ],
@@ -102,8 +102,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "LCD",
-  "uid": "cc6c338f-6e92-4bcd-a4d0-562f1480c24f",
-  "version": 2,
+  "title": "RGB",
+  "uid": "a06505f1-0f0e-4fd0-8d25-6c51417d0aca",
+  "version": 1,
   "weekStart": ""
 }

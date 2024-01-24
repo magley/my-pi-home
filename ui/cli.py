@@ -1,5 +1,6 @@
 from common.app import App
 import time
+from datetime import datetime
 
 
 def console_app(app: App):
@@ -21,20 +22,28 @@ def _console_app(app: App):
     print('-' * 30)
     print("listen\t\t(Use keyboard interrupt to return to menu)")
     print('quit')
-    print("room-buzz-on")
-    print("room-buzz-off")
+    print("door-buzz-on")
+    print("door-buzz-off")
+    print("bedroom-buzz-on")
+    print("bedroom-buzz-off")
     print("door-light-on")
     print("door-light-off")
     print("lcd-write")
     print('debug-gsg-shake')
+    print('b4sd-time')
+    print('rgb-color')
     print('-' * 30)
     print('Enter command:', end='')
     
     i = input()
-    if i ==  'room-buzz-on':
-        app.room_buzzer_on()
-    elif i ==  'room-buzz-off':
-        app.room_buzzer_off()
+    if i ==  'door-buzz-on':
+        app.door_buzzer_on()
+    elif i ==  'door-buzz-off':
+        app.door_buzzer_off()  
+    elif i ==  'bedroom-buzz-on':
+        app.bedroom_buzzer_on()
+    elif i ==  'bedroom-buzz-off':
+        app.bedroom_buzzer_off()
     elif i ==  'door-light-on':
         app.door_light_on()
     elif i == 'door-light-off':
@@ -44,6 +53,12 @@ def _console_app(app: App):
         app.lcd_write_text(s)
     elif i == 'debug-gsg-shake':
         app.gsg_debug_shake()
+    elif i == 'b4sd-time':
+        current_time = datetime.now().strftime('%H:%M:%S')
+        app.b4sd_write_text(current_time)
+    elif i == 'rgb-color':
+        c = _input_rgb_color()
+        app.rgb_color(c)
     elif i ==  'listen':
         app.print_thread.set_unpaused()
         try:
@@ -57,3 +72,12 @@ def _console_app(app: App):
         print("Unknown command")
 
     return False
+
+
+def _input_rgb_color():
+    while True:
+        s = input('Enter color: ')
+        if len(s) != 3 or (s[0] != '0' and s[0] != '1') or (s[1] != '0' and s[1] != '1') or (s[2] != '0' and s[2] != '1'):
+            print('Incorrect color. Format is (0|1)(0|1)(0|1)\nExample colors: "101", "110", "001"')
+            continue
+        return s

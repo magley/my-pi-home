@@ -58,10 +58,19 @@ def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
         def on_message(ws, message):
             msg = json.loads(message)
             is_alarm = msg['alarm']
+            alarm_reason = msg['alarm_reason']
+            with app.userdata_lock:
+                app.userdata['alarm'] = is_alarm
+                app.userdata['alarm_reason'] = alarm_reason
             if is_alarm:
-                app.room_buzzer_on()
+                app.door_buzzer_on()
+                app.bedroom_buzzer_on()
             else:
-                app.room_buzzer_off()
+                app.door_buzzer_off()
+                with app.userdata_lock:
+                    # Only disable BB if the wakeup timer isn't currently active
+                    if not app.userdata.get('is_wakeup_active'):
+                        app.bedroom_buzzer_off()
 
         ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/alarm",
                             on_open=on_open,
@@ -72,6 +81,110 @@ def websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app: App):
     
     thread = threading.Thread(target=ws_code_running_in_background_thread, daemon=True)
     thread.start()
+
+
+# [10]
+def websocket_brgb(app: App):
+    """
+    Usage
+    -----
+    Call it once on app startup. Will start websocket for setting BRGB values.
+    """
+    def ws_code_running_in_background_thread():
+        def on_open(ws):
+            pass
+
+        def on_close(ws, close_status_code, close_msg):
+            pass
+
+        def on_error(ws, error):
+            print(error)
+                
+        def on_message(ws, message):
+            msg = json.loads(message)
+            rgb = msg['rgb']
+            app.rgb_color(rgb)
+
+        ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/brgb",
+                            on_open=on_open,
+                            on_close=on_close,
+                            on_message=on_message,
+                            on_error=on_error)   
+        ws.run_forever()
+    
+    thread = threading.Thread(target=ws_code_running_in_background_thread, daemon=True)
+    thread.start()
+
+
+# [9]
+def start_threads_for_wakeup(app: App):
+    """
+    Usage
+    -----
+    Call it once on app startup. Will start threads for websocket and buzzing
+    """
+    def ws_code_running_in_background_thread():
+        def on_open(ws):
+            pass
+
+        def on_close(ws, close_status_code, close_msg):
+            pass
+
+        def on_error(ws, error):
+            print(error)
+                
+        def on_message(ws, message):
+            """
+            message can be either { "wakeup": wakeup } or { "is_wakeup_active": is_wakeup_active }
+            """
+            msg = json.loads(message)
+            wakeup = msg.get('wakeup')
+            if wakeup is not None:
+                with app.userdata_lock:
+                    app.userdata['wakeup'] = wakeup
+                
+            is_wakeup_active = msg.get('is_wakeup_active')
+            if is_wakeup_active is not None:
+                with app.userdata_lock:
+                    app.userdata['is_wakeup_active'] = is_wakeup_active
+                if is_wakeup_active:
+                    app.bedroom_buzzer_on()    
+                # Only disable BB if the alarm isn't currently active
+                else:
+                    with app.userdata_lock:
+                        if not app.userdata.get('alarm'):
+                            app.bedroom_buzzer_off()
+
+        ws = websocket.WebSocketApp(f"{app.config['server']['url_ws']}/wakeup",
+                            on_open=on_open,
+                            on_close=on_close,
+                            on_message=on_message,
+                            on_error=on_error)   
+        ws.run_forever()
+
+    thread = threading.Thread(target=ws_code_running_in_background_thread, daemon=True)
+    thread.start()
+
+    def periodically_check_if_wakeup_is_active():
+        while True:
+            wakeup = ''
+            with app.userdata_lock:
+                wakeup = app.userdata.get('wakeup')
+                if wakeup is None:
+                    app.userdata['wakeup'] = ''
+                    continue
+            cur_time = datetime.datetime.now().strftime('%H:%M')
+            if cur_time == wakeup:
+                _post(app, {"is_wakeup_active": True}, "is_wakeup_active")
+                # Sleep a minute (plus few seconds for paranoia) so we don't trigger the same alarm again
+                time.sleep(62)
+                continue
+            time.sleep(2)
+
+
+    thread = threading.Thread(target=periodically_check_if_wakeup_is_active, daemon=True)
+    thread.start()
+
 
 # [7]
 def read_GDHT_to_GLCD(app: App):
@@ -155,6 +268,36 @@ def on_DPIR_movement_detect_person_from_DUS(app: App):
 
     return lambda cfg, data: _on_DPIR_movement_detect_person_from_DUS(app, cfg, data)
 
+
+# [3]
+def on_MDS_open_for_five_seconds_activate_alarm(app: App):
+    def _on_MDS_open_for_five_seconds_activate_alarm(app: App, cfg: dict, data: dict):
+        if cfg['name'] != 'DS1' and cfg['name'] != 'DS2':
+            return
+        
+        with app.userdata_lock:
+            val = app.userdata.get(cfg['name'], {'first_open_time': None, 'last_open_time': None})
+            if data['open'] == 1:
+                if not val['first_open_time']:
+                    val['first_open_time'] = datetime.datetime.now()
+                val['last_open_time'] = datetime.datetime.now()
+                time_before_opens = (val['last_open_time'] - val['first_open_time']).seconds
+                if time_before_opens >= 5 and not app.userdata.get('alarm'):
+                    # Will set alarm to True on server, which will in turn set it to True in app
+                    # through websocket (app -> server -> app)
+                    _post(app, {'alarm': True, 'alarm_reason': cfg['name']}, 'alarm')
+            else:
+                val['first_open_time'] = None
+                # If the alarm has been previously caused by this device registering an unlocked/opened door,
+                # now that the door is locked/closed we can turn off the alarm. If the alarm has been caused
+                # by some other factor, don't turn it off.
+                if app.userdata.get('alarm') and app.userdata.get('alarm_reason', '') == cfg['name']:
+                    _post(app, {'alarm': False}, 'alarm')
+            app.userdata[cfg['name']] = val
+
+    return lambda cfg, data: _on_MDS_open_for_five_seconds_activate_alarm(app, cfg, data)
+
+
 # [5]
 def on_PIR_when_no_people_alarm(app: App):
     def _on_PIR_when_no_people_alarm(app: App, cfg: dict, data: dict):
@@ -166,6 +309,18 @@ def on_PIR_when_no_people_alarm(app: App):
 
 
     return lambda cfg, data: _on_PIR_when_no_people_alarm(app, cfg, data)
+
+# [4]
+def on_MDS_when_security_off_alarm(app: App):
+    def _on_MDS_when_security_off_alarm(app: App, cfg: dict, data: dict):
+        if cfg['name'] not in ['DS1', 'DS2']:
+            return
+        
+        if data['open'] == 1:
+            _post(app, {}, "mds")
+
+
+    return lambda cfg, data: _on_MDS_when_security_off_alarm(app, cfg, data)
 
 # [6] Utility
 def on_GSG_motion_add_userdata(app: App):
@@ -235,3 +390,50 @@ def on_GSG_motion_check_for_alarm(app: App):
             _post(app, {'alarm': True}, '/alarm')
 
     return lambda cfg, data: _on_GSG_motion_check_for_alarm(app, cfg, data)
+
+
+# [8] [9]
+def periodically_write_current_time_to_B4SD_and_blink_if_wakeup_active(app: App):
+    """
+    Usage
+    -----
+    Call it once on app startup, the function will start a daemon thread.
+    """
+    def update_time():
+        sleep_time = 1
+        while True:
+            remaining_sleep_time = sleep_time
+            if app.userdata.get('is_wakeup_active'):
+                remaining_sleep_time -= 0.5
+                app.b4sd_blank()
+                time.sleep(remaining_sleep_time)
+            cur_time = datetime.datetime.now().strftime('%H:%M:%S')
+            app.b4sd_write_text(cur_time)
+            time.sleep(remaining_sleep_time)
+    t = threading.Thread(target=update_time, daemon=True)
+    t.start()
+
+
+BTN_TO_BRGB_COLOR = {
+    '1': '100', # Red
+    '2': '010', # Green
+    '3': '001', # Blue
+    '4': '110',
+    '5': '011',
+    '6': '101',
+    '7': '111', # White
+    '0': '000', # Off
+}
+
+
+# [10]
+def on_BIR_read_send_signal_to_BRGB(app: App):
+    def _on_BIR_read_send_signal_to_BRGB(app: App, cfg: dict, data: dict):
+        if cfg['name'] != 'BIR':
+            return
+        btn = data['btn']
+        color = BTN_TO_BRGB_COLOR.get(btn)
+        if color is not None:
+            app.rgb_color(color)
+
+    return lambda cfg, data: _on_BIR_read_send_signal_to_BRGB(app, cfg, data)

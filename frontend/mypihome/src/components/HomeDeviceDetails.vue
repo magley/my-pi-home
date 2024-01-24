@@ -8,16 +8,19 @@ import DMS from '@/components/device-details/DMS.vue';
 import Buzzer from '@/components/device-details/Buzzer.vue';
 import LED from '@/components/device-details/LED.vue';
 import LCD from '@/components/device-details/LCD.vue';
+import D4S7 from './device-details/D4S7.vue';
+import RGB from './device-details/RGB.vue';
+import IRReceiver from './device-details/IRReceiver.vue';
 
 
 const props = defineProps({
-    device: Object
+    device: Object,
+    homeState: Object
 });
 
 </script>
 
 <template>
-
 <template v-if="device.temperature != undefined">
     <DHT :device="device" />
 </template>
@@ -39,7 +42,7 @@ const props = defineProps({
 </template>
 
 <template v-else-if="device.keys != undefined">
-    <DMS :device="device" />
+    <DMS :device="device" :dms_last_4="String(homeState.dms_last_4)" :cur_idx="homeState.dms_cur_idx" />
 </template>
 
 <template v-else-if="device.buzz != undefined">
@@ -52,6 +55,18 @@ const props = defineProps({
 
 <template v-else-if="device.lcd != undefined">
     <LCD :device="device" />
+</template>
+
+<template v-else-if="device.d4s7 != undefined">
+    <D4S7 :device="device" />
+</template>
+
+<template v-else-if="device.rgb != undefined">
+    <RGB :device="device" />
+</template>
+
+<template v-else-if="device.btn != undefined">
+    <IRReceiver :device="device" />
 </template>
 
 <!-- Else-->

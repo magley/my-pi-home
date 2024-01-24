@@ -80,7 +80,7 @@ const isHovered = (code) => {
     <span class="right">
         <template v-for="(value, key, index) in homeState.device_state">
             <div class="details-item" :class="{highlight: isHovered(key)}" @mouseover="onHoverDevice(key)" @mouseleave="onUnhoverDevice(key)">
-                <HomeDeviceDetals :device="value" />
+                <HomeDeviceDetals :device="value" :home-state="homeState" />
             </div>
         </template>
     </span>

@@ -51,10 +51,14 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("iot/led")
     client.subscribe("iot/lcd")
     client.subscribe("iot/gyro")
+    client.subscribe("iot/d4s7")
+    client.subscribe("iot/rgb")
+    client.subscribe("iot/ir_receiver")
 
 def on_message(client, userdata, msg):
     d = json.loads(msg.payload.decode('utf-8'))
     _update_device_state(d)
+    update_security_state(d)
     save_to_db(d)
 
 client = mqtt.Client()
@@ -68,10 +72,34 @@ client.loop_start()
 
 state = State()
 glo_ws_alarms = [] # List of websocket connections for the '/alarm' endpoint.
+glo_ws_wakeup = [] # List of websocket connections for the '/wakeup' endpoint.
+glo_ws_brgb = [] # List of websocket connections for the '/brgb' endpoint.
 
 
 def _update_device_state(d: dict):
     state.update_device_state(d)
+
+
+# [4]
+def update_security_state(d: dict):
+    if d['name'] != 'DMS':
+        return
+    
+    keys = d['value']
+    for key in keys:
+        state.append_dms_last_4(key)
+
+    if state.dms_last_4.circular_equal(state.pin):
+        _set_alarm(False, '')
+        if state.security_active:
+            state.set_security_active(False)
+        else:
+            threading.Thread(target=start_security_state, daemon=True).start()
+
+
+def start_security_state():
+    time.sleep(10)
+    state.set_security_active(True)
 
 
 def _periodically_set_state_pir_to_false():
@@ -97,23 +125,54 @@ def _periodically_set_state_pir_to_false():
         time.sleep(sleep_time)
 
 
-def _publish_alarm_to_ws(is_alarm: bool):
+def _publish_alarm_to_ws(is_alarm: bool, alarm_reason: str):
     glo_ws_alarms_copy = glo_ws_alarms.copy()
     for ws in glo_ws_alarms_copy:
         try:
-            data = { "alarm": is_alarm }
+            data = { "alarm": is_alarm, "alarm_reason": alarm_reason }
             ws.send(json.dumps(data))
         except Exception:
             glo_ws_alarms.remove(ws)
 
 
-def _set_alarm(is_alarm: bool):
+def _publish_wakeup_to_ws(wakeup: str):
+    glo_ws_wakeup_copy = glo_ws_wakeup.copy()
+    for ws in glo_ws_wakeup_copy:
+        try:
+            data = { "wakeup": wakeup }
+            ws.send(json.dumps(data))
+        except Exception:
+            glo_ws_wakeup.remove(ws)
+
+
+def _publish_brgb_to_ws(rgb: str):
+    glo_ws_brgb_copy = glo_ws_brgb.copy()
+    for ws in glo_ws_brgb_copy:
+        try:
+            data = { "rgb": rgb }
+            ws.send(json.dumps(data))
+        except Exception:
+            glo_ws_brgb.remove(ws)
+
+
+def _publish_is_wakeup_active_to_ws(is_wakeup_active: bool):
+    glo_ws_wakeup_copy = glo_ws_wakeup.copy()
+    for ws in glo_ws_wakeup_copy:
+        try:
+            data = { "is_wakeup_active": is_wakeup_active }
+            ws.send(json.dumps(data))
+        except Exception:
+            glo_ws_wakeup.remove(ws)
+
+
+def _set_alarm(is_alarm: bool, alarm_reason: str):
     """
     Set the alarm to True, publish through websocket, send value to InfluxDB.
     """
 
     state.set_alarm(is_alarm)
-    _publish_alarm_to_ws(is_alarm)
+    state.set_alarm_reason(alarm_reason)
+    _publish_alarm_to_ws(is_alarm, alarm_reason)
 
     # Write to influxDB.
     try:
@@ -125,6 +184,16 @@ def _set_alarm(is_alarm: bool):
 
     except Exception:
         print("Error")
+
+
+def _set_wakeup(wakeup: str):
+    state.set_wakeup(wakeup)
+    _publish_wakeup_to_ws(wakeup)
+
+
+def _set_is_wakeup_active(is_wakeup_active: bool):
+    state.set_is_wakeup_active(is_wakeup_active)
+    _publish_is_wakeup_active_to_ws(is_wakeup_active)
 
 
 @app.route("/people", methods = ['GET', 'POST'])
@@ -149,17 +218,60 @@ def alarm():
         return { "alarm": state.alarm }
     elif request.method == 'POST':
         is_alarm = request.json['alarm']
-        if state.alarm != is_alarm:
-            _set_alarm(is_alarm)
+        alarm_reason = ''
+        if is_alarm == True:
+            alarm_reason = request.json.get('alarm_reason', 'unknown')
+        # NOTE: 'unknown' is treated as the highest alarm reason. The only other reason we use so far is
+        #       DS1/DS2 for unlocked doors, which are to be replaced by 'unknown' if they're currently in state.
+        if state.alarm != is_alarm or (alarm_reason == 'unknown' and (state.alarm_reason == 'DS1' or state.alarm_reason == 'DS2')):
+            _set_alarm(is_alarm, alarm_reason)
         return ""
     
+
+@app.route("/wakeup", methods = ['GET', 'POST'])
+def wakeup():
+    if request.method == 'GET':
+        return { "wakeup": state.wakeup }
+    elif request.method == 'POST':
+        wakeup = request.json['wakeup']
+        if state.wakeup != wakeup:
+            _set_wakeup(wakeup)
+        return ""
+
+
+@app.route("/is_wakeup_active", methods = ['GET', 'POST'])
+def is_wakeup_active():
+    if request.method == 'GET':
+        return { "is_wakeup_active": state.is_wakeup_active }
+    elif request.method == 'POST':
+        is_wakeup_active = request.json['is_wakeup_active']
+        if state.is_wakeup_active != is_wakeup_active:
+            _set_is_wakeup_active(is_wakeup_active)
+        return ""
+
 
 @app.route("/rpir", methods = ['POST'])
 def on_rpir_motion_detected():
     if request.method == 'POST':
         if state.number_of_people == 0 and not state.alarm:
-            _set_alarm(True)
+            _set_alarm(True, 'unknown')
         return ""
+
+
+@app.route("/mds", methods = ['POST'])
+def on_mds_opened():
+    if request.method == 'POST':
+        if state.security_active and not state.alarm:
+            _set_alarm(True, 'unknown')
+        return ""
+
+
+@app.route("/brgb", methods = ['POST'])
+def brgb():
+    rgb = request.json['rgb']
+    _publish_brgb_to_ws(rgb)
+    return ""
+
 
 
 @app.route("/state")
@@ -178,12 +290,33 @@ def ws_alarm(ws):
 
     # If a client connects AFTER the alarm has been set off, we want to let him know.
     if state.alarm:
-        _publish_alarm_to_ws(state.alarm)
+        _publish_alarm_to_ws(state.alarm, state.alarm_reason)
     
     while True:
         time.sleep(10)
 
     glo_ws_alarms.remove(ws)
+
+
+@sock.route("/ws/brgb")
+def ws_brgb(ws):
+    global glo_ws_brgb
+    glo_ws_brgb.append(ws)
+    while True:
+        time.sleep(10)
+
+
+@sock.route("/ws/wakeup")
+def ws_wakeup(ws):
+    global glo_ws_wakeup
+    glo_ws_wakeup.append(ws)
+
+    if state.wakeup:
+        _publish_wakeup_to_ws(state.wakeup)
+    if state.is_wakeup_active:
+        _publish_is_wakeup_active_to_ws(state.is_wakeup_active)
+    while True:
+        time.sleep(10)
 
 
 @sock.route("/ws/state")
@@ -192,7 +325,19 @@ def ws_state(ws):
         d = {
             "alarm": state.alarm,
             "number_of_people": state.number_of_people,
-            "device_state": state.device_state
+            "device_state": state.device_state,
+            "dms_last_4": state.dms_last_4.as_str(),
+            "dms_cur_idx": state.dms_last_4.cur_idx
+        }
+        ws.send(json.dumps(d))
+        time.sleep(1)
+
+
+@sock.route("/ws/security")
+def ws_security(ws):
+    while True:
+        d = {
+            "security_active": state.security_active,
         }
         ws.send(json.dumps(d))
         time.sleep(1)

@@ -11,7 +11,12 @@ from components.mbkp import MBKP_Mqtt
 from components.buzzer import Buzzer_Mqtt
 from components.led import LED_Mqtt
 from components.gyro import Gyro_Mqtt, debug_shake
+from components.d4s7 import D4S7_Mqtt
+from components.rgb import RGB_Mqtt
+from components.ir_receiver import IR_Receiver_Mqtt
 from common.app_logic import read_GDHT_to_GLCD, on_DPIR_movement_turn_on_DL_for10s, on_DUS_add_userdata, on_DPIR_movement_detect_person_from_DUS, on_PIR_when_no_people_alarm, websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer, on_GSG_motion_add_userdata, on_GSG_motion_check_for_alarm
+from common.app_logic import periodically_write_current_time_to_B4SD_and_blink_if_wakeup_active, start_threads_for_wakeup
+from common.app_logic import on_MDS_open_for_five_seconds_activate_alarm, on_MDS_when_security_off_alarm, websocket_brgb, on_BIR_read_send_signal_to_BRGB
 
 class Args(typing.NamedTuple):
     configs_path: str
@@ -40,6 +45,9 @@ def main():
     led_mqtt = LED_Mqtt(configs)
     lcd_mqtt = LCD_Mqtt(configs)
     gyro_mqtt = Gyro_Mqtt(configs)
+    d4s7_mqtt = D4S7_Mqtt(configs)
+    rgb_mqtt = RGB_Mqtt(configs)
+    ir_receiver_mqtt = IR_Receiver_Mqtt(configs)
 
     app.add_on_read_func(dht_mqtt.put)
     app.add_on_read_func(pir_mqtt.put)
@@ -47,9 +55,12 @@ def main():
     app.add_on_read_func(mds_mqtt.put)
     app.add_on_read_func(mbkp_mqtt.put)
     app.add_on_read_func(gyro_mqtt.put)
+    app.add_on_read_func(ir_receiver_mqtt.put)
     app.add_on_event_func('buzzer', buzzer_mqtt.put)
     app.add_on_event_func('led', led_mqtt.put)
     app.add_on_event_func('lcd', lcd_mqtt.put)
+    app.add_on_event_func('d4s7', d4s7_mqtt.put)
+    app.add_on_event_func('rgb', rgb_mqtt.put)
 
 
     # [7]
@@ -59,8 +70,14 @@ def main():
     # [2]
     app.add_on_read_func(on_DUS_add_userdata(app))
     app.add_on_read_func(on_DPIR_movement_detect_person_from_DUS(app))
+    # [3]
+    app.add_on_read_func(on_MDS_open_for_five_seconds_activate_alarm(app))
     # [5]
     app.add_on_read_func(on_PIR_when_no_people_alarm(app))
+    # [4]
+    app.add_on_read_func(on_MDS_when_security_off_alarm(app))
+    # [10]
+    app.add_on_read_func(on_BIR_read_send_signal_to_BRGB(app))
     # [6]
     # ---- vvvv DEBUG ONLY vvvv -------------------------------------
     #
@@ -76,7 +93,10 @@ def main():
 
 
     websocket_if_alarm_then_turn_on_buzzer_else_turn_off_buzzer(app)
-
+    websocket_brgb(app)
+    if app.pi_id == '3':
+        periodically_write_current_time_to_B4SD_and_blink_if_wakeup_active(app)
+        start_threads_for_wakeup(app)
 
 
     app.run()
