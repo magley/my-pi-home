@@ -1,0 +1,220 @@
+{
+    "server": {
+        "url": "http://127.0.0.1:5000",
+        "url_ws": "ws://127.0.0.1:5000/ws"
+    },
+    "mqtt": {
+        "host": "127.0.0.1",
+        "port": 1883
+    },
+    "devices": [
+        {
+            "name": "RDHT1",
+            "type": "dht",
+            "pins": [17],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "RDHT2",
+            "type": "dht",
+            "pins": [27],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "RPIR1",
+            "type": "pir",
+            "pins": [22],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "RPIR2",
+            "type": "pir",
+            "pins": [10],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DB",
+            "type": "buzzer",
+            "pins": [9],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DPIR1",
+            "type": "pir",
+            "pins": [11],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DS1",
+            "type": "mds",
+            "pins": [0],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DL",
+            "type": "led",
+            "pins": [5],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DUS1",
+            "type": "uds",
+            "pins": [23, 24],
+            "simulated": true,
+            "read_interval": 1,
+            "runs_on": "PI1"
+        },
+        {
+            "name": "DMS",
+            "type": "mbkp",
+            "pins": [25, 8, 7, 1, 12, 16, 20, 21],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI1"
+        },
+
+
+
+
+
+
+
+
+        {
+            "name": "DS2",
+            "type": "mds",
+            "pins": [0],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+        {
+            "name": "DUS2",
+            "type": "uds",
+            "pins": [23, 24],
+            "simulated": true,
+            "read_interval": 1,
+            "runs_on": "PI2"
+        }, 
+        {
+            "name": "DPIR2",
+            "type": "pir",
+            "pins": [22],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+        {
+            "name": "GDHT",
+            "type": "dht",
+            "pins": [17],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+        {
+            "name": "GLCD",
+            "type": "lcd",
+            "pins": [2, 3],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"     
+        },
+        {
+            "name": "GSG",
+            "type": "gyro",
+            "pins": [2, 3],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2" 
+        },
+        {
+            "name": "RPIR3",
+            "type": "pir",
+            "pins": [10],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+        {
+            "name": "RDHT3",
+            "type": "dht",
+            "pins": [27],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI2"
+        },
+
+
+
+
+
+
+
+
+        {
+            "name": "RPIR4",
+            "type": "pir",
+            "pins": [10],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI3"
+        },
+        {
+            "name": "RDHT4",
+            "type": "dht",
+            "pins": [27],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI3"
+        },
+        {
+            "name": "BB",
+            "type": "buzzer",
+            "pins": [9],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI3"
+        },
+        {
+            "name": "B4SD",
+            "type": "d4s7",
+            "pins": [11,4,23,8,7,10,18,  25,    22,27,17,24],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI3"
+        },
+        {
+            "name": "BIR",
+            "type": "ir_receiver",
+            "pins": [10],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI3"
+        },
+        {
+            "name": "BRGB",
+            "type": "rgb",
+            "pins": [12, 13, 19],
+            "simulated": true,
+            "read_interval": 1.0,
+            "runs_on": "PI3"
+        }
+    ]
+}

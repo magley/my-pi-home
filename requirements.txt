@@ -1,0 +1,7 @@
+paho-mqtt
+flask
+influxdb_client
+requests
+flask-sock
+websocket-client
+flask-cors
